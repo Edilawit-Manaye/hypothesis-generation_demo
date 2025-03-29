@@ -1,26 +1,46 @@
-library(susieR)
-library(curl)
 library(readr)
 
-data1 <- read_csv('./scripts/filtered_chr16_pos53828066_snps_ld_test.csv')
 
-X <- as.matrix(data1[, c("ytx", "beta", "se", "tstat", "P", "POS")])
-Y <- data1$beta  
+data("N3finemapping")
 
-n <- nrow(data1)
-b <- Y  
+n = nrow(N3finemapping$X)
+b = N3finemapping$true_coef[,1]
+sumstats <- univariate_regression(N3finemapping$X, N3finemapping$Y[,1])
+z_scores <- sumstats$betahat / sumstats$sebetahat
+Rin = cor(N3finemapping$X)
+attr(Rin, "eigen") = eigen(Rin, symmetric = TRUE)
+susie_plot(z_scores, y = "z", b=b)
 
-sumstats <- univariate_regression(X, Y)
+lambda = estimate_s_rss(z_scores, Rin, n=n)
+lambda
+condz_in = kriging_rss(z_scores, Rin, n=n)
+condz_in$plot
 
-valid_indices <- sumstats$sebetahat > 0
-z_scores <- sumstats$betahat[valid_indices] / sumstats$sebetahat[valid_indices]
-b_filtered <- b[valid_indices]
-susie_plot(z_scores, y = "z", b = b_filtered)
+fit <- susie_rss(z_scores, Rin, n=n, estimate_residual_variance = TRUE)
+susie_plot(fit,y = "PIP", b=b)
+
+data_file <- tempfile(fileext = ".RData")
+data_url <- paste0("https://raw.githubusercontent.com/stephenslab/susieR/",
+                   "master/inst/datafiles/SummaryConsistency1k.RData")
+curl_download(data_url,data_file)
+load(data_file)
+zflip = SummaryConsistency$z
+ld = SummaryConsistency$ldref
+n=10000
+b = numeric(length(zflip))
+b[SummaryConsistency$signal_id] = zflip[SummaryConsistency$signal_id]
+plot(zflip, pch = 16, col = "#767676", main = "Marginal Associations", 
+     xlab="SNP", ylab = "z scores")
+points(SummaryConsistency$signal_id, zflip[SummaryConsistency$signal_id], col=2, pch=16)
+points(SummaryConsistency$flip_id, zflip[SummaryConsistency$flip_id], col=7, pch=16)
+
+fit = susie_rss(zflip, ld, n=n)
+susie_plot(fit, y='PIP', b=b)
+points(SummaryConsistency$flip_id, fit$pip[SummaryConsistency$flip_id], col=7, pch=16)
+
+lambda = estimate_s_rss(zflip, ld, n=n)
+lambda
 
 
-summary(z_scores)
-
-Rin <- cor(X)
-attr(Rin, "eigen") <- eigen(Rin, symmetric = TRUE)
-
-susie_plot(z_scores, y = "z", b = b)
+condz = kriging_rss(zflip, ld, n=n)
+condz$plot
