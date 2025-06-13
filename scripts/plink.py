@@ -6,9 +6,9 @@ from cyvcf2 import VCF, Writer
 POPULATION = "EUR"
 SAMPLE_PANEL_URL = "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/integrated_call_samples_v3.20130502.ALL.panel"
 OUTPUT_DIR = "../data/susie"
-SNP_LIST_FILE = "../data/susie/snplist/chr_sig_locus.snplist.txt"
+#SNP_LIST_FILE = "../data/susie/snplist/chr_sig_locus.snplist.txt"
 # SNP_LIST_FILE="../data/susie/UK_Biobank/COL/significant_snp_lists.txt"
-#SNP_LIST_FILE="../data/susie/UK_Biobank/BMI/significant_snplist.txt"
+SNP_LIST_FILE="../data/susie/UK_Biobank/BMI/significant_snplist.txt"
 
 
 def run_command(cmd):
@@ -24,7 +24,7 @@ def prepare_ld_matrix():
     
     vcf_dir = os.path.join(OUTPUT_DIR, "vcf")
     updated_vcf_dir = os.path.join(OUTPUT_DIR, "updated_vcf")
-    plink_binary_dir = os.path.join(OUTPUT_DIR, "new_plink_binary")
+    plink_binary_dir = os.path.join(OUTPUT_DIR, "plink_binary_BMI")
     
     os.makedirs(vcf_dir, exist_ok=True)
     os.makedirs(updated_vcf_dir, exist_ok=True)
@@ -47,19 +47,21 @@ def prepare_ld_matrix():
         if not os.path.exists(vcf_file):
             run_command(f"wget {VCF_URL} -O {vcf_file}")
         
-        updated_vcf_file =  vcf_file = os.path.join(updated_vcf_dir, f"ALL.chr{CHROMOSOME}.updated.vcf.gz")
+        updated_vcf_file = os.path.join(updated_vcf_dir, f"ALL.chr{CHROMOSOME}.updated.vcf.gz")
         print(f"Processing chromosome {CHROMOSOME}...")
 
-        # vcf = VCF(vcf_file)
-        # writer = Writer(updated_vcf_file, vcf)
-        # for variant in vcf:
-        #     chrom = variant.CHROM
-        #     pos = variant.POS
-        #     ref = variant.REF
-        #     alt = variant.ALT[0]
-        #     variant.ID = f"{chrom}:{pos}:{ref}:{alt}"
-        #     writer.write_record(variant)
-        # writer.close()
+        if not os.path.exists(updated_vcf_file):
+            vcf_file = os.path.join(vcf_dir, f"ALL.chr{CHROMOSOME}.vcf.gz") 
+            vcf = VCF(vcf_file)
+            writer = Writer(updated_vcf_file, vcf)
+            for variant in vcf:
+                chrom = variant.CHROM
+                pos = variant.POS
+                ref = variant.REF
+                alt = variant.ALT[0]
+                variant.ID = f"{chrom}:{pos}:{ref}:{alt}"
+                writer.write_record(variant)
+            writer.close()
 
         plink_prefix = os.path.join(plink_binary_dir, f"chr{CHROMOSOME}_eur")
         print("plink_prefix")
@@ -79,28 +81,6 @@ def prepare_ld_matrix():
                     f"--keep-allele-order "
                     f"--make-bed --out {filtered_prefix}"
                 )
-
-       
-    # for chr_file in os.listdir("../data/susie/ALL_chr/"):
-    #         chr_num = chr_file.split("_")[0]
-    #         ld_output_file = f"../data/susie/ALL_chr/ld/test_sig_locus_mt_{chr_num}.ld"
-    #         r2_output_file = f"../data/susie/ALL_chr/ld/test_sig_locus_mt_r2_{chr_num}.ld"
-
-    #         if not os.path.exists(ld_output_file):
-    #             run_command(
-    #                 f"plink --bfile {filtered_prefix} "
-    #                 f"--keep-allele-order --r square "
-    #                 f"--extract ../data/susie/ALL_chr/{chr_file} "
-    #                 f"--out ../data/susie/ALL_chr/ld/test_sig_locus_mt_{chr_num}"
-    #             )
-
-    #         if not os.path.exists(r2_output_file):
-    #             run_command(
-    #                 f"plink --bfile {filtered_prefix} "
-    #                 f"--keep-allele-order --r2 square "
-    #                 f"--extract ../data/susie/ALL_chr/{chr_file} "
-    #                 f"--out ../data/susie/ALL_chr/ld/test_sig_locus_mt_r2_{chr_num}"
-    #             )
         
 if __name__ == "__main__":
     prepare_ld_matrix()
