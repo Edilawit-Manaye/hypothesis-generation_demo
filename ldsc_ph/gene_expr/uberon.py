@@ -49,6 +49,20 @@ def create_cellxgene_mapping_from_tissue_descendants(tissue_descendants_data):
     print(f"Created mapping for {len(cellxgene_uberon_map)} UBERON IDs (including descendants)")
     return cellxgene_uberon_map
 
+def get_tissue_name_from_ontology(uberon_id, ontology):
+    """Get the human-readable tissue name from UBERON ID using ontology"""
+    if not ontology:
+        return None
+    
+    try:
+        term = ontology[uberon_id]
+        return term.name
+    except KeyError:
+        return None
+    except Exception as e:
+        print(f"Error getting tissue name for {uberon_id}: {e}")
+        return None
+
 
     
 
