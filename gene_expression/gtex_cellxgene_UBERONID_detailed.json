@@ -1,0 +1,65 @@
+{
+    "Brain_Frontal_Cortex_(BA9)": {
+        "gtex_tissue_name": "Brain_Frontal_Cortex_(BA9)",
+        "gtex_uberon_id": "UBERON:0009834",
+        "gtex_ontology_name": "dorsolateral prefrontal cortex",
+        "cellxgene_uberon_id": "UBERON:0000955",
+        "cellxgene_ontology_name": "brain",
+        "match_type": "descendant",
+        "notes": "GTEx tissue 'UBERON:0009834' (dorsolateral prefrontal cortex) is a descendant of CellxGene tissue 'UBERON:0000955' (brain)"
+    },
+    "Brain_Putamen_(basal_ganglia)": {
+        "gtex_tissue_name": "Brain_Putamen_(basal_ganglia)",
+        "gtex_uberon_id": "UBERON:0001874",
+        "gtex_ontology_name": "putamen",
+        "cellxgene_uberon_id": "UBERON:0000955",
+        "cellxgene_ontology_name": "brain",
+        "match_type": "descendant",
+        "notes": "GTEx tissue 'UBERON:0001874' (putamen) is a descendant of CellxGene tissue 'UBERON:0000955' (brain)"
+    },
+    "Brain_Caudate_(basal_ganglia)": {
+        "gtex_tissue_name": "Brain_Caudate_(basal_ganglia)",
+        "gtex_uberon_id": "UBERON:0001873",
+        "gtex_ontology_name": "caudate nucleus",
+        "cellxgene_uberon_id": "UBERON:0000955",
+        "cellxgene_ontology_name": "brain",
+        "match_type": "descendant",
+        "notes": "GTEx tissue 'UBERON:0001873' (caudate nucleus) is a descendant of CellxGene tissue 'UBERON:0000955' (brain)"
+    },
+    "Brain_Nucleus_accumbens_(basal_ganglia)": {
+        "gtex_tissue_name": "Brain_Nucleus_accumbens_(basal_ganglia)",
+        "gtex_uberon_id": "UBERON:0001882",
+        "gtex_ontology_name": "nucleus accumbens",
+        "cellxgene_uberon_id": "UBERON:0000955",
+        "cellxgene_ontology_name": "brain",
+        "match_type": "descendant",
+        "notes": "GTEx tissue 'UBERON:0001882' (nucleus accumbens) is a descendant of CellxGene tissue 'UBERON:0000955' (brain)"
+    },
+    "Brain_Anterior_cingulate_cortex_BA24": {
+        "gtex_tissue_name": "Brain_Anterior_cingulate_cortex_BA24",
+        "gtex_uberon_id": "UBERON:0009835",
+        "gtex_ontology_name": "anterior cingulate cortex",
+        "cellxgene_uberon_id": "UBERON:0000955",
+        "cellxgene_ontology_name": "brain",
+        "match_type": "descendant",
+        "notes": "GTEx tissue 'UBERON:0009835' (anterior cingulate cortex) is a descendant of CellxGene tissue 'UBERON:0000955' (brain)"
+    },
+    "Brain_Cerebellar_Hemisphere": {
+        "gtex_tissue_name": "Brain_Cerebellar_Hemisphere",
+        "gtex_uberon_id": "UBERON:0002037",
+        "gtex_ontology_name": "cerebellum",
+        "cellxgene_uberon_id": "UBERON:0000955",
+        "cellxgene_ontology_name": "brain",
+        "match_type": "descendant",
+        "notes": "GTEx tissue 'UBERON:0002037' (cerebellum) is a descendant of CellxGene tissue 'UBERON:0000955' (brain)"
+    },
+    "Brain_Cerebellum": {
+        "gtex_tissue_name": "Brain_Cerebellum",
+        "gtex_uberon_id": "UBERON:0002037",
+        "gtex_ontology_name": "cerebellum",
+        "cellxgene_uberon_id": "UBERON:0000955",
+        "cellxgene_ontology_name": "brain",
+        "match_type": "descendant",
+        "notes": "GTEx tissue 'UBERON:0002037' (cerebellum) is a descendant of CellxGene tissue 'UBERON:0000955' (brain)"
+    }
+}
