@@ -83,4 +83,22 @@ top_negative_hgnc = [(ensembl_to_hgnc_map.get(gene, gene), corr) for gene, corr 
 all_genes_hgnc = [ensembl_to_hgnc_map.get(gene, gene) for gene in all_genes]
 with open("top_positive_hgnc.txt", "w") as f: f.writelines([f"{gene}\t{corr:.4f}\n" for gene, corr in top_positive_hgnc])
 
+import gseapy as gp 
+
+library = "GO_Biological_Process_2023"
+organism = "Human"
+
+res = gp.enrichr(gene_list=[gene[0] for gene in top_positive_hgnc],
+                                gene_sets=library,
+                                background=all_genes_hgnc,
+                                organism=organism,
+                                outdir=None).results
+res.drop("Gene_set", axis=1, inplace=True)
+res.insert(1, "ID", res["Term"].apply(
+    lambda x: x.split("(")[1].split(")")[0]))
+res["Term"] = res["Term"].apply(lambda x: x.split("(")[0])
+res = res[res["Adjusted P-value"] < 0.05]
+res[res["Term"].str.contains("adipose", case=False)]
+
+print(res)
 
