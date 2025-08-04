@@ -6,6 +6,7 @@ with cellxgene_census.open_soma() as census:
     obs_df = census["census_data"]["homo_sapiens"]["obs"]
     tissue_data = obs_df.read(column_names=["tissue"]).concat().to_pandas()
     unique_tissues = sorted(tissue_data["tissue"].dropna().unique().tolist())
+    
 
 
 with open("all_unique_tissues.json", "w") as f:

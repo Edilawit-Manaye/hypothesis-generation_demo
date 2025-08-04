@@ -50,6 +50,7 @@ def create_cellxgene_mapping_from_tissue_descendants(tissue_descendants_data):
     return cellxgene_uberon_map
 
 def get_tissue_name_from_ontology(uberon_id, ontology):
+    print("onology name from get tissue name from ontology:", ontology)
     """Get the human-readable tissue name from UBERON ID using ontology"""
     if not ontology:
         return None
@@ -78,14 +79,14 @@ def map_gtex_to_cellxgene_tissue(gtex_tissue_name, gtex_uberon_map, cellxgene_ub
     if gtex_uberon_id in cellxgene_uberon_map:
         mapped_parent = cellxgene_uberon_map[gtex_uberon_id]
         if mapped_parent == gtex_uberon_id:
-            print(f"✓ Direct match found: {gtex_uberon_id} exists as parent tissue")
+            print(f"Direct match found: {gtex_uberon_id} exists as parent tissue")
             tissue_name = get_tissue_name_from_ontology(gtex_uberon_id, ontology)
             notes = f"Direct UBERON ID match found: {gtex_uberon_id}"
             if tissue_name:
                 notes += f" ({tissue_name})"
             return gtex_uberon_id, "direct", notes
         else:
-            print(f"✓ Descendant match found: {gtex_uberon_id} is a descendant of {mapped_parent}")
+            print(f"Descendant match found: {gtex_uberon_id} is a descendant of {mapped_parent}")
             gtex_tissue_name = get_tissue_name_from_ontology(gtex_uberon_id, ontology)
             parent_tissue_name = get_tissue_name_from_ontology(mapped_parent, ontology)
             notes = f"GTEx tissue '{gtex_uberon_id}'"
@@ -96,7 +97,7 @@ def map_gtex_to_cellxgene_tissue(gtex_tissue_name, gtex_uberon_map, cellxgene_ub
                 notes += f" ({parent_tissue_name})"
             return mapped_parent, "descendant", notes
     else:
-        print(f"✗ No direct match: {gtex_uberon_id} not found in tissue descendants")
+        print(f"No direct match: {gtex_uberon_id} not found in tissue descendants")
 
 
     if ontology:
@@ -160,16 +161,62 @@ def main():
 
 
     gtex_uberon_mapping = {
-        'Brain_Frontal_Cortex_(BA9)': 'UBERON:0009834',
-        'Brain_Putamen_(basal_ganglia)':'UBERON:0001874',
-        'Brain_Caudate_(basal_ganglia)':'UBERON:0001873',
-        'Brain_Nucleus_accumbens_(basal_ganglia)':'UBERON:0001882',
+        'Adipose_Subcutaneous': 'UBERON:0002190',
+        'Adipose_Visceral_Omentum': 'UBERON:0010414',
+        'Adrenal_Gland': 'UBERON:0002369',
+        'Artery_Aorta': 'UBERON:0001496',
+        'Artery_Coronary': 'UBERON:0001621',
+        'Artery_Tibial': 'UBERON:0007610',
+        'Bladder': 'UBERON:0001255',
+        'Brain_Amygdala': 'UBERON:0001876',
         'Brain_Anterior_cingulate_cortex_BA24': 'UBERON:0009835',
-        'Brain_Cerebellar_Hemisphere':'UBERON:0002037',
-        'Brain_Cerebellum':'UBERON:0002037'
-
-
+        'Brain_Caudate_basal_ganglia': 'UBERON:0001873',
+        'Brain_Cerebellar_Hemisphere': 'UBERON:0002037',
+        'Brain_Cerebellum': 'UBERON:0002037',
+        'Brain_Cortex': 'UBERON:0001870',
+        'Brain_Frontal_Cortex_BA9': 'UBERON:0009834',
+        'Brain_Hippocampus': 'UBERON:0001954',
+        'Brain_Hypothalamus': 'UBERON:0001898',
+        'Brain_Nucleus_accumbens_basal_ganglia': 'UBERON:0001882',
+        'Brain_Putamen_basal_ganglia': 'UBERON:0001874',
+        'Brain_Spinal_cord_cervical_c-1': 'UBERON:0006469',
+        'Brain_Substantia_nigra': 'UBERON:0002038',
+        'Breast_Mammary_Tissue': 'UBERON:0008367',
+        'Cells_Cultured_fibroblasts': 'EFO:0002009',
+        'Cells_EBV-transformed_lymphocytes': 'EFO:0000572',
+        'Colon_Sigmoid': 'UBERON:0001159',
+        'Colon_Transverse': 'UBERON:0001157',
+        'Esophagus_Gastroesophageal_Junction': 'UBERON:0004550',
+        'Esophagus_Mucosa': 'UBERON:0006920',
+        'Esophagus_Muscularis': 'UBERON:0004648',
+        'Heart_Atrial_Appendage': 'UBERON:0006631',
+        'Heart_Left_Ventricle': 'UBERON:0006566',
+        'Kidney_Cortex': 'UBERON:0001225',
+        'Liver': 'UBERON:0001114',
+        'Lung': 'UBERON:0008952',
+        'Minor_Salivary_Gland': 'UBERON:0006330',
+        'Muscle_Skeletal': 'UBERON:0011907',
+        'Nerve_Tibial': 'UBERON:0001323',
+        'Ovary': 'UBERON:0002119',
+        'Pancreas': 'UBERON:0001150',
+        'Pituitary': 'UBERON:0000007',
+        'Prostate': 'UBERON:0002367',
+        'Skin_Not_Sun_Exposed_Suprapubic': 'UBERON:0001416',
+        'Skin_Sun_Exposed_Lower_leg': 'UBERON:0001511',
+        'Small_Intestine_Terminal_Ileum': 'UBERON:0001211',
+        'Spleen': 'UBERON:0002106',
+        'Stomach': 'UBERON:0000945',
+        'Testis': 'UBERON:0000473',
+        'Thyroid': 'UBERON:0002046',
+        'Uterus': 'UBERON:0000995',
+        'Vagina': 'UBERON:0000996',
+        'Whole_Blood': 'UBERON:0013756',
+        'Blood': 'UBERON:0013756',
+        'Cervix_Ectocervix': 'UBERON:0012249',
+        'Cervix_Endocervix': 'UBERON:0000458',
+        'Fallopian_Tube': 'UBERON:0003889',
     }
+
 
     cellxgene_uberon_mapping = create_cellxgene_mapping_from_tissue_descendants(tissue_descendants_data)
 
@@ -188,13 +235,63 @@ def main():
     results = {}
 
     for gtex_tissue_to_map in [
-        'Brain_Frontal_Cortex_(BA9)',
-        'Brain_Putamen_(basal_ganglia)',
-        'Brain_Caudate_(basal_ganglia)',
-        'Brain_Nucleus_accumbens_(basal_ganglia)',
-        'Brain_Anterior_cingulate_cortex_BA24',
-        'Brain_Cerebellar_Hemisphere',
-        'Brain_Cerebellum'
+
+            'Adipose_Subcutaneous',
+            'Adipose_Visceral_Omentum',
+            'Adrenal_Gland',
+            'Artery_Aorta',
+            'Artery_Coronary',
+            'Artery_Tibial',
+            'Bladder',
+            'Brain_Amygdala',
+            'Brain_Anterior_cingulate_cortex_BA24',
+            'Brain_Caudate_basal_ganglia',
+            'Brain_Cerebellar_Hemisphere',
+            'Brain_Cerebellum',
+            'Brain_Cortex',
+            'Brain_Frontal_Cortex_BA9',
+            'Brain_Hippocampus',
+            'Brain_Hypothalamus',
+            'Brain_Nucleus_accumbens_basal_ganglia',
+            'Brain_Putamen_basal_ganglia',
+            'Brain_Spinal_cord_cervical_c-1',
+            'Brain_Substantia_nigra',
+            'Breast_Mammary_Tissue',
+            'Cells_Cultured_fibroblasts',
+            'Cells_EBV-transformed_lymphocytes',
+            'Colon_Sigmoid',
+            'Colon_Transverse',
+            'Esophagus_Gastroesophageal_Junction',
+            'Esophagus_Mucosa',
+            'Esophagus_Muscularis',
+            'Heart_Atrial_Appendage',
+            'Heart_Left_Ventricle',
+            'Kidney_Cortex',
+            'Liver',
+            'Lung',
+            'Minor_Salivary_Gland',
+            'Muscle_Skeletal',
+            'Nerve_Tibial',
+            'Ovary',
+            'Pancreas',
+            'Pituitary',
+            'Prostate',
+            'Skin_Not_Sun_Exposed_Suprapubic',
+            'Skin_Sun_Exposed_Lower_leg',
+            'Small_Intestine_Terminal_Ileum',
+            'Spleen',
+            'Stomach',
+            'Testis',
+            'Thyroid',
+            'Uterus',
+            'Vagina',
+            'Whole_Blood',
+            'Blood',
+            'Cervix_Ectocervix',
+            'Cervix_Endocervix',
+            'Fallopian_Tube'
+
+
     ]:
        
         gtex_uberon_id = gtex_uberon_mapping.get(gtex_tissue_to_map)
@@ -233,7 +330,7 @@ def main():
         print(f"\nResult for '{gtex_tissue_to_map}':")
         print(json.dumps(results[gtex_tissue_to_map], indent=4))
 
-    with open("gtex_cellxgene_detailed_results.json", "w") as f:
+    with open("all_gtex_cellxgene_detailed_results.json", "w") as f:
         json.dump(results, f, indent=4)
 
     print("Detailed results (with parent & descendant IDs) saved to gtex_cellxgene_detailed_results.json")
