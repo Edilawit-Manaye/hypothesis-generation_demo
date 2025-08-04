@@ -3,52 +3,63 @@ import json
 import cellxgene_census
 import pandas as pd
 import numpy as np
+import pickle
+import os
 from scipy.stats import pearsonr
 
 class CellxgeneMock:
-    def __init__(self):
-        self.ensembl_hgnc_map = {}
-
-    def download_expression_matrix(self, tissue=None, cell_type=None, save_path="expression_matrix.h5ad"):
+    def get_coexpression_matrix(self, gene, tissue, cell_type, k=500):
         with cellxgene_census.open_soma() as census:
-            if cell_type:
-                obs_filter = f"cell_type == '{cell_type}'"
-            elif tissue:
-                print("it is a tissue....", tissue)
-                obs_filter = f"tissue == '{tissue}'"
-            else:
-                raise ValueError("Provide either a tissue or a cell_type.")
-
             adata = cellxgene_census.get_anndata(
                 census=census,
                 organism="Homo sapiens",
-                obs_value_filter=obs_filter,
-                obs_column_names=["tissue", "cell_type"]
+                # obs_value_filter=f"cell_type == '{cell_type}'",
+                obs_value_filter = f"tissue == '{tissue}'",
+                obs_column_names=["assay", "cell_type", "tissue", "tissue_general", "suspension_type", "disease"]
+
             )
-            if 'feature_id' in adata.var.columns:  
+
+            if 'feature_id' in adata.var.columns:
+                print("feature id is found inside the data")
                 adata.var_names = adata.var['feature_id']
             else:
                 print("Gene names column 'feature_id' not found in var DataFrame")
 
-    
             gene_expression_sum = np.array((adata.X > 0).sum(axis=0)).flatten()
             adata_filtered = adata[:, gene_expression_sum > 0]
             genes = adata_filtered.var['feature_id']
             df_expression = pd.DataFrame(adata_filtered.X.toarray(), columns=genes)
-            gene="IRX3"
+
             if gene in df_expression.columns:
                 non_zero_samples = df_expression[df_expression[gene] > 0]
+                total_samples = df_expression.shape[0]
+                non_zero_sample_count = non_zero_samples.shape[0]
+                non_zero_percentage = (non_zero_sample_count / total_samples) * 100
+
+                print(f"Total samples: {total_samples}")
+                print(f"Samples with non-zero expression for '{gene}': {non_zero_sample_count} ({non_zero_percentage:.2f}%)")
+
+                correlations = {}
+                for g in non_zero_samples.columns:
+                    if g != gene:
+                        corr, p_value = pearsonr(non_zero_samples[gene], non_zero_samples[g])
+                        if p_value < 0.05:
+                            correlations[g] = corr
+
+                sorted_correlations = sorted(correlations.items(), key=lambda x: x[1], reverse=True)
+                top_positive = sorted_correlations[:k]
+                top_negative = sorted_correlations[-k:]
+                with open(f"top_positive_{tissue_type}.txt", "w") as f: f.writelines([f"{gene}\t{corr:.4f}\n" for gene, corr in top_positive])
+
+
+
+                return top_positive, top_negative, genes
             else:
                 print(f"Gene of interest '{gene}' not found in the dataset.")
-                return [], []
-            # adata.write(save_path)
-            # print(adata)
-            # print(f"Saved: {save_path} ({adata.n_obs} cells × {adata.n_vars} genes)")
-
-        return save_path
-
-
-os.makedirs("results", exist_ok=True)
+                return [], [], []
+gene_of_interest = 'ENSG00000140718'
+# gene_of_interest = 'ENSG00000177508'  # IRX3
+cell_type = 'preadipocyte'
 
 with open("gtex_UBERONID_cellxgene_results.json", "r") as f:
     data = json.load(f)
@@ -57,9 +68,19 @@ mock = CellxgeneMock()
 
 for key, value in data.items():
     tissue_type = value["cellxgene_descendant_ontology_name"]
-    safe_name = tissue_type.replace(" ", "_").replace("/", "_")
-    filename = os.path.join("results", f"brain_{safe_name}_expr.h5ad")
-    mock.download_expression_matrix(
+    print(f"\nProcessing tissue: {tissue_type}")
+    top_positive, top_negative, all_genes = mock.get_coexpression_matrix(
+        gene=gene_of_interest,
         tissue=tissue_type,
-        save_path=filename
+        cell_type=cell_type
     )
+
+
+
+ensembl_to_hgnc_map = pickle.load(open("../data/ensembl_to_hgnc.pkl", "rb"))
+top_positive_hgnc = [(ensembl_to_hgnc_map.get(gene, gene), corr) for gene, corr in top_positive]
+top_negative_hgnc = [(ensembl_to_hgnc_map.get(gene, gene), corr) for gene, corr in top_negative]
+all_genes_hgnc = [ensembl_to_hgnc_map.get(gene, gene) for gene in all_genes]
+with open("top_positive_hgnc.txt", "w") as f: f.writelines([f"{gene}\t{corr:.4f}\n" for gene, corr in top_positive_hgnc])
+
+
