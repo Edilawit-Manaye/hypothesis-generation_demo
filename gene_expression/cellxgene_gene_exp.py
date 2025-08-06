@@ -98,7 +98,6 @@ res.insert(1, "ID", res["Term"].apply(
     lambda x: x.split("(")[1].split(")")[0]))
 res["Term"] = res["Term"].apply(lambda x: x.split("(")[0])
 res = res[res["Adjusted P-value"] < 0.05]
-res[res["Term"].str.contains("adipose", case=False)]
 
 print(res)
 
