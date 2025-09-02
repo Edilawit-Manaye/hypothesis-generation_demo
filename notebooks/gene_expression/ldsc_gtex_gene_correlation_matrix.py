@@ -535,7 +535,6 @@ def __():
     from scipy import sparse
     import multiprocessing
     from functools import partial
-    import warnings
     from scipy.stats import ConstantInputWarning
 
     try:
