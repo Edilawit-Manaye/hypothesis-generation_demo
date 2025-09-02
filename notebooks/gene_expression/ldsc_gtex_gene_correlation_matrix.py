@@ -715,7 +715,6 @@ def __(np, soma, sparse, pearsonr, warnings, ConstantInputWarning, tqdm, use_tqd
                     pbar = tqdm(total=num_batches, desc="Analyzing gene correlations", unit="batch",
                                 bar_format="{l_bar}{bar:30}{r_bar} {n_fmt}/{total_fmt} batches | {elapsed}<{remaining}",
                                 dynamic_ncols=True)
-                    print("completed analyzing gene correlations")
                 else:
                     print(f"Processing {num_batches} batches of {batch_size} genes each...")
 
