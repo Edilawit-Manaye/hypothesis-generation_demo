@@ -535,6 +535,7 @@ def __():
     from scipy import sparse
     import multiprocessing
     from functools import partial
+    import warnings
     from scipy.stats import ConstantInputWarning
 
     try:
@@ -610,11 +611,11 @@ def __(np, soma, sparse, pearsonr, warnings, ConstantInputWarning, tqdm, use_tqd
                     obs_joinids = obs_joinids[:100000] 
                     n = 100000
                 else:
-                     print(f"Gene of interest '{gene}' not found in the dataset.")
-                     n = len(obs_joinids)
+                    n = len(obs_joinids)
                 if n == 0:
                     print(f"No cells found for tissue '{tissue}'")
                     return [], [], []
+
                 var_df = experiment.ms["RNA"].var.read(column_names=["soma_joinid", "feature_id"]).concat().to_pandas().set_index("feature_id")
                 genes = var_df.index.tolist()
 
