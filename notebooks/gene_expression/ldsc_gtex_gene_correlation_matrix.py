@@ -585,7 +585,7 @@ def __(np, soma, sparse, pearsonr, warnings, ConstantInputWarning, tqdm, use_tqd
 
             with warnings.catch_warnings():
                 for i, gene_id in enumerate(batch_genes):
-                    if np.var(batch_matrix[:, i], ddof=1) > 0:  # Skip constant arrays
+                    if np.var(batch_matrix[:, i], ddof=1) > 0:  
                         corr, p_value = pearsonr(gene_expr_sub, batch_matrix[:, i])
                         if p_value < 0.05 and not np.isnan(p_value):
                             local_correlations[gene_id] = corr
@@ -596,6 +596,8 @@ def __(np, soma, sparse, pearsonr, warnings, ConstantInputWarning, tqdm, use_tqd
             with cellxgene_census.open_soma(census_version="2025-01-30") as census:
                 experiment = census["census_data"]["homo_sapiens"]
                 value_filter = f"tissue == '{tissue}'"
+                if cell_type:
+                   value_filter += f" and cell_type == '{cell_type}'"
                 try:
                     axis_query = experiment.axis_query(
                         measurement_name="RNA",
@@ -758,7 +760,7 @@ def __(np, soma, sparse, pearsonr, warnings, ConstantInputWarning, tqdm, use_tqd
 def __(CellxgeneMock, json, ontology_mapping_results):
     gene_of_interest = 'ENSG00000140718'
     # gene_of_interest = 'ENSG00000177508'  # IRX3
-    cell_type = 'preadipocyte'
+    cell_type = 'preadipocyte' 
     cellxgene_analysis = CellxgeneMock()
     cellxgene_coexp_results = {}
     
