@@ -1,8 +1,8 @@
 
 import re
 
-IN = "mined_rules.rules"
-OUT = "mined_rules.lpad"
+IN = "output/mined_rules.rules"
+OUT = "output/mined_rules.lpad"
 min_pca = 0.70
 min_support = 100
 
