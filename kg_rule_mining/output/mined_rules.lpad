@@ -1,0 +1,16 @@
+% Probabilistic rules from AMIE
+:- style_check(-discontiguous).
+
+% Predicate declarations
+:- multifile type/2.
+:- multifile gene/1.
+:- multifile snp/1.
+:- multifile enhancer/1.
+:- multifile associated_with/2.
+:- multifile regulates/2.
+:- multifile friend/2.
+:- multifile takes/2.
+:- multifile likes/2.
+
+% Mined rules:
+

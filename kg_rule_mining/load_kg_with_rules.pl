@@ -1,21 +1,12 @@
-% load_kg_with_rules.pl (modified)
+% load_small_relevant.pl
 :- style_check(-discontiguous).
-:- multifile gene/1.
-:- multifile snp/1.
-:- multifile enhancer/1.
-:- multifile associated_with/2.
-:- multifile regulates/2.
 :- multifile regulatory_effect/2.
 :- multifile eqtl_association/2.
+:- multifile activity_by_contact/2.
+:- multifile relevant_gene/2.
 
-% File paths for knowledge graph files
-user:file_search_path(gencode_gene, '/mnt/hdd_1/abdu/prolog_out_v2/gencode/gene').
-user:file_search_path(dbsnp_nodes, '/mnt/hdd_1/abdu/prolog_out_v2/dbsnp/nodes.pl').
-user:file_search_path(dbsnp_edges, '/mnt/hdd_1/abdu/prolog_out_v2/dbsnp/edges.pl').
-user:file_search_path(enhancer_nodes, '/mnt/hdd_1/abdu/prolog_out_v2/enhancer_atlas/nodes.pl').
-user:file_search_path(enhancer_edges, '/mnt/hdd_1/abdu/prolog_out_v2/enhancer_atlas/edges.pl').
-user:file_search_path(dbsuper_edges, '/mnt/hdd_1/abdu/prolog_out_v2/dbsuper/edges.pl').
-user:file_search_path(relevant_gene_kb, '/mnt/hdd_1/abdu/prolog_out_v2/metta_out_v5').  % for regulatory_effect / eqtl_association
+% File paths (adjust to your directory)
+user:file_search_path(relevant_gene_kb, '/mnt/hdd_1/abdu/prolog_out_v2/metta_out_v5_small').
 
 % Load a list of files safely with timing
 load_with_time(Files, Name) :-
@@ -23,28 +14,15 @@ load_with_time(Files, Name) :-
     maplist(consult, Files),
     format("Loaded ~w!~n", [Name]).
 
-% Load minimal knowledge graph
-load_minimal_kg :-
-    load_with_time([gencode_gene('nodes.pl')], "genes"),
-    load_with_time([dbsnp_nodes], "snps"),
-    load_with_time([enhancer_nodes, enhancer_edges], "enhancers"),
-    load_with_time([dbsuper_edges], "associations").
+% Load only the small subsets
+load_relevant_gene_small :-
+    load_with_time([relevant_gene_kb('regulatory_effect_small.pl'),
+                    relevant_gene_kb('eqtl_association_small.pl'),
+                    relevant_gene_kb('activity_by_contact_small.pl'),
+                    relevant_gene_kb('relevant_gene_small.pl')],
+                   "small relevant gene facts").
 
-% Load relevant gene facts safely
-load_relevant_gene_facts :-
-    load_with_time([relevant_gene_kb('regulatory_effect.pl'),
-                    relevant_gene_kb('eqtl_association.pl')], "relevant_gene_facts").
-
-% Load KG + mined rules
-load_kg_with_rules :-
-    format("Loading knowledge graph...~n"),
-    load_minimal_kg,
-    load_relevant_gene_facts,
-    format("Loading mined rules...~n"),
-    consult('output/mined_rules.lpad'),
-    format("Knowledge graph and rules loaded successfully!~n").
-
-% Dump all triples to TSV: predicate(subject, object)
+% Dump all triples to TSV
 dump_triples(File) :-
     open(File, write, Stream),
     forall(
@@ -54,7 +32,7 @@ dump_triples(File) :-
     close(Stream),
     format("Dumped all triples to ~w~n", [File]).
 
-% Convenience: load KG and dump to a specific TSV
+% Convenience
 load_and_dump(File) :-
-    load_kg_with_rules,
+    load_relevant_gene_small,
     dump_triples(File).
