@@ -1,0 +1,4 @@
+subdirs = [ 'HaplotypeFrequencyComponent', 'SNPSummaryComponent', 'RelatednessComponent', 'SampleSummaryComponent', 'SNPOutputComponent' ]
+def build( bld ):
+	bld.recurse( subdirs )
+

@@ -1,0 +1,11 @@
+def configure( conf ):
+	pass
+
+def build( bld ):
+	bld.stlib(
+		target = 'SampleSummaryComponent',
+		source = bld.path.ant_glob( 'src/*.cpp' ),
+		includes = './include',
+		use = 'eigen genfile statfile appcontext qcdb metro boost ZLIB',
+		export_includes = './include'
+	)

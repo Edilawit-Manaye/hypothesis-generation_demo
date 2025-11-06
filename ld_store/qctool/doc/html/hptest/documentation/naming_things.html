@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML">
+		</script>
+		<script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="../js/datatables.min.js"></script>
+		<script type="text/javascript" src="../js/local.js"></script>
+
+		<link href="../style/css/datatables.min.css" rel="stylesheet" type="text/css">
+		<link href="../style/css/default.css" rel="stylesheet" type="text/css">
+		<title>HPTEST</title>
+	</head>
+	<body>
+		<div class="header" id="header1">
+			<!--<img src = "style/images/qctool.png" class = "header_img" ></img>-->
+			<div class="header_text">
+				HPTEST
+			</div>
+			<div class="header_subtext">
+				Software to test for genetic association between hosts and pathogens.
+			</div>
+			<img class="logo" src="../style/images/logo.png">
+		</div>
+
+<section class="main_text">
+<p>To make analysis files nice to use, HPTEST lets you name a few things:</p>
+<ol>
+<li>
+<p>You can use <code>-analysis-name</code> to specify a name for your analysis. This is recorded in the
+metadata in the output file. In sqlite output format, this becomes a bit more useful: it gets
+recorded in the <code>Analysis</code> table, its start/end times in the <code>AnalysisStatus</code> table, and its
+command-line options in the <code>AnalysisProperty</code> table. This lets you keep track of multiple HPTEST
+runs output into the same sqlite output file.</p>
+</li>
+<li>
+<p>Use <code>-outcome-name</code> to specify a name for the outcome variable. By default this is "outcome",
+but it's often nicer to get HPTEST to put its real name into the output file. For example, in our
+malaria study I used <code>-outcome-name Pf</code>; the output columns were named e.g.
+<code>add:beta_1:add/Pf=1</code> instead of <code>add:beta_1:add/outcome=1</code>.</p>
+</li>
+<li>
+<p>Models can be given names - e.g. instead of <code>-model add</code> you can write <code>-model
+my_favourite:add</code>. (This is admittedly mostly useful for the <code>add+het</code> model, which is set up as
+<code>-model gen:add+het</code> by default so that the output columns are called "gen".)</p>
+</li>
+</ol>
+</section>
+		<nav class="button_bar">
+			<div>
+				<div class="nav_button" name="overview">
+					<a href="../index.html">overview</a>
+				</div>
+				<div class="nav_button" name="documentation">
+					documentation
+					<ul class="menu">
+						<li><a href="../documentation/getting_started.html">Getting started</a></li>
+						<li><a href="../documentation/alphabetical_options.html">List of options</a></li>
+						<li><a href="../documentation/naming_things.html">Naming things</a></li>
+						<li><a href="../documentation/specifying_priors.html">Specifying priors</a></li>
+						<li><a href="../documentation/interpreting_hptest_output.html">Interpreting HPTEST output</a></li>
+						<li><a href="../documentation/sqlite_output.html">The sqlite output format</a></li>
+						<li><a href="../documentation/filtering.html">Filtering variants and samples</a></li>
+						<li><a href="../documentation/technical_details.html">Technical details</a></li>
+					</ul>
+				</div>
+				<div class="nav_button" name="download">
+					<a href="../documentation/download.html">download</a>
+				</div>
+			</div>
+		</nav>
+
+	</body>
+</html>

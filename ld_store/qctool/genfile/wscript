@@ -1,0 +1,27 @@
+import os.path
+import glob
+#import UnitTest
+
+def configure( conf ):
+	pass
+
+def build( bld ):
+	bld.stlib(
+		target = 'genfile',
+		source = bld.path.ant_glob( 'src/*.cpp' )
+			+ bld.path.ant_glob( 'src/bgen/*.cpp' )
+			+ bld.path.ant_glob( 'src/vcf/*.cpp' )
+			+ bld.path.ant_glob( 'src/string_utils/*.cpp' )
+			+ bld.path.ant_glob( 'src/db/*.cpp' ),
+		includes='./include',
+		use = 'boost eigen zstd sqlite3 ZLIB',
+		export_includes = './include'
+	)
+	bld.program(
+		target = 'all_tests',
+		source = bld.path.ant_glob( 'test/*.cpp' ),
+		use = 'genfile boost_unit_test_framework boost ZLIB',
+		includes='./include',
+		unit_test = 1,
+		install_path = None
+	)

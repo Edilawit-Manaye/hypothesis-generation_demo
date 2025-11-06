@@ -1,0 +1,50 @@
+<section class="main_text" markdown="1">
+### Introduction ###
+
+QCTOOL is a command-line utility program for manipulation and quality control of gwas datasets and other genome-wide data. QCTOOL can be used
+
+* To compute per-variant and per-sample QC metrics.
+* To filter out samples or variants.
+* To merge datasets in various ways.
+* To convert dataset between file formats. (In particular QCTOOL can
+	read and write <a href="http://www.well.ox.ac.uk/~gav/bgen_format/bgen_format.html">BGEN</a> files,
+	including full support for the BGEN v1.2 format that has been used for
+	the <a href="http://www.ukbiobank.ac.uk/scientists-3/genetic-data/">UK Biobank imputed data full release</a>).
+* To manipulate datasets in various ways - e.g. by updating data fields or aligning alleles to a reference sequence based on information in a strand file.
+* To annotate variants with information from BED files, sequence from FASTA files, or with genetic map positions.
+* To compute LD metrics between variants.
+* To compare genotypes for individuals typed or imputed or phased in different datasets.
+* To compute between-sample relatedness and principal components.
+* To compute 'genetic risk predictor' scores.
+
+QCTOOL is designed to be as easy-to-use as possible and we hope you find it so. See the <a
+href="[ROOT]/documentation/examples/basic.html">basic usage page</a> for a quick start on running QCTOOL, and the
+<a href='[ROOT]/documentation/diagram_of_options.html'>diagram of options</a> for an overview of how QCTOOL works.
+
+**IMPORTANT**: this page documents QCTOOL version 2, which differs in several important ways from the 
+original <a href="http://www.well.ox.ac.uk/~gav/qctool_v1">QCTOOL v1</a>.
+Version 1 is still available but is now unsupported.
+
+### Obtaining QCTOOL ###
+
+The QCTOOL source code is currently hosted at <a href="https://code.enkre.net">code.enkre.net</a>. You may also be able
+to obtain precompiled binaries from <a href="https://www.well.ox.ac.uk/~gav/resources/">this folder</a>. See the <a
+href="[ROOT]/documentation/download.html">download page</a> for full details on obtaining and installing QCTOOL.
+
+### Change history ###
+
+See the <a href="[ROOT]/documentation/changes.html">change history page</a>.
+
+### Acknowledgements ###
+
+The following people contributed to the design and implementation of qctool:
+* <a href="http://www.well.ox.ac.uk/~gav/">Gavin Band</a>
+* <a href="http://www.stats.ox.ac.uk/~marchini/">Jonathan Marchini</a>
+
+In addition, QCTOOL contains the <a href="http://www.sph.umich.edu/csg/abecasis/Exact/index.html">SNP-HWE</a> code by Jan Wigginton et al., described in "A Note on Exact Tests of Hardy-Weinberg Equilibrium", Wigginton et al, <i>Am. J. Hum. Genet</i> (2005) 76:887-93.
+Further acknowledgements can be found on the <a href="https://code.enkre.net/qctool">QCTOOL repository main page</a>.
+
+### Getting support ###
+
+For more information or questions, please contact the OXSTATGEN mailing list at ``oxstatgen (at) jiscmail.ac.uk``
+</section>

@@ -1,0 +1,11 @@
+def configure( conf ):
+	pass
+
+def build( bld ):
+	bld.stlib(
+		target = 'RelatednessComponent',
+		source = bld.path.ant_glob( 'src/*.cpp' ),
+		includes='./include',
+		use = 'eigen metro statfile appcontext worker genfile boost SampleSummaryComponent ZLIB CBLAS LAPACK',
+		export_includes = './include'
+	)

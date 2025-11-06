@@ -1,0 +1,48 @@
+import os.path
+import glob
+#import UnitTest
+
+def configure( conf ):
+	pass
+
+def create_test( bld, name ):
+	bld(
+		features = 'cxx cprogram',
+		target = name,
+		source = [  'test/' + name + '.cpp' ],
+		uselib_local = 'integration boost_unit_test_framework',
+		uselib = 'BOOST_UNIT_TEST_FRAMEWORK',
+		includes='./include',
+		unit_test=1,
+		install_path = None
+	)
+
+def create_benchmark( bld, name ):
+	bld(
+		features = 'cxx cprogram',
+		target = name,
+		source = [  'benchmarks/' + name + '.cpp' ],
+		uselib_local = 'integration',
+		includes='./include',
+		install_path = None
+	)
+
+
+def build( bld ):
+	import Options
+	
+	#---------------------
+	# libs
+	#---------------------
+	bld(
+		features = 'cxx cstaticlib',
+		target = 'integration',
+		source = bld.path.ant_glob 'src/*.cpp' ),
+		includes='./include',
+		uselib_local='fputils eigen boost',
+		uselib = 'BOOST',
+		export_includes = './include'
+	)
+	
+	create_test( bld, 'test_integrators' )
+	create_test( bld, 'test_newton_raphson' )

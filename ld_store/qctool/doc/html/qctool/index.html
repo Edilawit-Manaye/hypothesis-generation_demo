@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+
+		<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="js/local.js"></script>
+		<script type="text/javascript" src="js/datatables.min.js"></script>
+		<link href="style/css/default.css" rel="stylesheet" type="text/css">
+		<title>QCTOOL v2</title>
+	</head>
+	<body>
+		<div class="header" id="header1">
+			<!--<img src = "style/images/qctool.png" class = "header_img" ></img>-->
+			<div class="header_text">
+				qctool v2
+			</div>
+			<div class="header_subtext">
+				A tool for quality control and analysis of gwas datasets.
+			</div>
+			<img src="style/images/qctool.png" class="logo">
+		</div>
+
+<section class="main_text">
+<h3>Introduction</h3>
+<p>QCTOOL is a command-line utility program for manipulation and quality control of gwas datasets and other genome-wide data. QCTOOL can be used</p>
+<ul>
+<li>To compute per-variant and per-sample QC metrics.</li>
+<li>To filter out samples or variants.</li>
+<li>To merge datasets in various ways.</li>
+<li>To convert dataset between file formats. (In particular QCTOOL can
+    read and write <a href="http://www.well.ox.ac.uk/~gav/bgen_format/bgen_format.html">BGEN</a> files,
+    including full support for the BGEN v1.2 format that has been used for
+    the <a href="http://www.ukbiobank.ac.uk/scientists-3/genetic-data/">UK Biobank imputed data full release</a>).</li>
+<li>To manipulate datasets in various ways - e.g. by updating data fields or aligning alleles to a reference sequence based on information in a strand file.</li>
+<li>To annotate variants with information from BED files, sequence from FASTA files, or with genetic map positions.</li>
+<li>To compute LD metrics between variants.</li>
+<li>To compare genotypes for individuals typed or imputed or phased in different datasets.</li>
+<li>To compute between-sample relatedness and principal components.</li>
+<li>To compute 'genetic risk predictor' scores.</li>
+</ul>
+<p>QCTOOL is designed to be as easy-to-use as possible and we hope you find it so. See the <a
+href="documentation/examples/basic.html">basic usage page</a> for a quick start on running QCTOOL, and the
+<a href='documentation/diagram_of_options.html'>diagram of options</a> for an overview of how QCTOOL works.</p>
+<p><strong>IMPORTANT</strong>: this page documents QCTOOL version 2, which differs in several important ways from the 
+original <a href="http://www.well.ox.ac.uk/~gav/qctool_v1">QCTOOL v1</a>.
+Version 1 is still available but is now unsupported.</p>
+<h3>Obtaining QCTOOL</h3>
+<p>The QCTOOL source code is currently hosted at <a href="https://code.enkre.net">code.enkre.net</a>. You may also be able
+to obtain precompiled binaries from <a href="https://www.well.ox.ac.uk/~gav/resources/">this folder</a>. See the <a
+href="documentation/download.html">download page</a> for full details on obtaining and installing QCTOOL.</p>
+<h3>Change history</h3>
+<p>See the <a href="documentation/changes.html">change history page</a>.</p>
+<h3>Acknowledgements</h3>
+<p>The following people contributed to the design and implementation of qctool:
+* <a href="http://www.well.ox.ac.uk/~gav/">Gavin Band</a>
+* <a href="http://www.stats.ox.ac.uk/~marchini/">Jonathan Marchini</a></p>
+<p>In addition, QCTOOL contains the <a href="http://www.sph.umich.edu/csg/abecasis/Exact/index.html">SNP-HWE</a> code by Jan Wigginton et al., described in "A Note on Exact Tests of Hardy-Weinberg Equilibrium", Wigginton et al, <i>Am. J. Hum. Genet</i> (2005) 76:887-93.
+Further acknowledgements can be found on the <a href="https://code.enkre.net/qctool">QCTOOL repository main page</a>.</p>
+<h3>Getting support</h3>
+<p>For more information or questions, please contact the OXSTATGEN mailing list at <code>oxstatgen (at) jiscmail.ac.uk</code></p>
+</section>
+		<nav class="button_bar"><div>			<div class="nav_button" name="overview">
+				<a href="index.html">overview</a>
+			</div>
+			<div class="nav_button" name="documentation">
+				documentation
+				<ul class="menu">
+					<li><a href="documentation/diagram_of_options.html">Diagram of options</a></li>
+					<li><a href="documentation/alphabetical_options.html">List of options</a></li>
+					<li><a href="documentation/changes.html">Change history</a></li>
+				</ul>
+			</div>
+			<div class="nav_button" name="tutorial">
+				examples
+				<ul class="menu">
+					<li><a href="documentation/examples/basic.html">Basic usage</a></li>
+					<li><a href="documentation/examples/converting.html">Converting file formats</a></li>
+					<li><a href="documentation/examples/converting_genotypes.html">Thresholding genotypes</a></li>
+					<li><a href="documentation/examples/sorting.html">Sorting and reordering data</a></li>
+					<li><a href="documentation/examples/combining.html">Combining datasets</a></li>
+					<li><a href="documentation/examples/merging.html">Merging in variants</a></li>
+					<li><a href="documentation/examples/altering_id_data.html">Altering variant identifying data</a></li>
+					<li><a href="documentation/examples/pipelining.html">Using qctool in a pipeline</a></li>
+					<li><a href="documentation/examples/filtering_samples.html">Filtering samples</a></li>
+					<li><a href="documentation/examples/filtering_variants.html">Filtering variants</a></li>
+					<li><a href="documentation/examples/summary_statistics.html">Computing summary statistics</a></li>
+					<li><a href="documentation/examples/annotating.html">Computing annotations</a></li>
+					<li><a href="documentation/examples/adding_to_sample_file.html">Adding data to a sample file</a></li>
+					<li><a href="documentation/examples/computing_ld.html">Computing LD</a></li>
+					<li><a href="documentation/examples/computing_pcs.html">Computing principal components</a></li>
+					<li><a href="documentation/examples/inferring_ploidy.html">Working with sex chromosomes</a></li>
+				</ul>
+			</div>
+			<div class="nav_button" name="file_formats">
+				file formats
+				<ul class="menu">
+					<a href="documentation/genotype_file_formats.html">Genotype file formats</a>
+					<a href="documentation/sample_file_formats.html">Sample file formats</a>
+					<a href="documentation/summary_file_formats.html">Summary statistic file formats</a>
+			</div>
+			<div class="nav_button" name="download">
+				<a href="documentation/download.html">download</a>
+			</div>
+</div>
+</nav>
+
+	</body>
+</html>

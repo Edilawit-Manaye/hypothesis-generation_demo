@@ -1,0 +1,20 @@
+def configure( conf ):
+	pass
+
+def build( bld ):
+	bld.stlib(
+		target = 'worker',
+		source = bld.path.ant_glob( 'src/*.cpp' ),
+		includes='./include',
+		use = 'boost pthread',
+		export_includes = './include'	
+	)	
+	
+	bld.program(
+		target = 'test_worker',
+		source = bld.path.ant_glob( 'test/*.cpp' ),
+		includes = './include',
+		use = 'worker boost boost_unit_test_framework',
+		unit_test = 1,
+		install_path = None
+	)

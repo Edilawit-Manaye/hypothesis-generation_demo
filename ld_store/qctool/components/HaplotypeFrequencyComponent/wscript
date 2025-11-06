@@ -1,0 +1,24 @@
+import os.path
+import glob
+#import UnitTest
+
+def configure( conf ):
+	pass
+
+def build( bld ):
+	bld.stlib(
+ 		target = 'HaplotypeFrequencyComponent',
+		source = bld.path.ant_glob( 'src/*.cpp' ),
+		includes='./include',
+		use = 'eigen genfile statfile integration appcontext qcdb boost ZLIB',
+		export_includes = './include'
+	)
+
+	bld.program(
+		target = 'test_haplotype_frequency_component',
+		source = bld.path.ant_glob( 'test/*.cpp' ),
+		use = 'HaplotypeFrequencyComponent boost boost_unit_test_framework',
+		includes='./include',
+		unit_test = 1,
+		install_path = None
+	)

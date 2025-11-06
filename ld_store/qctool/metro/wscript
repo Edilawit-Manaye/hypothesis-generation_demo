@@ -1,0 +1,25 @@
+def configure( cfg ):
+	pass
+
+def build( bld ):
+	bld.stlib(
+		target = 'metro',
+		source = (
+			bld.path.ant_glob( 'src/*.cpp' ) +
+			bld.path.ant_glob( 'src/regression/*.cpp' ) +
+			bld.path.ant_glob( 'src/distributions/*.cpp') +
+			bld.path.ant_glob( 'src/concurrency/*.cpp')
+		),
+		use = 'eigen boost genfile',
+		includes='./include',
+		export_includes = './include'
+	)
+
+	bld.program(
+		target = 'test_metro',
+		source = bld.path.ant_glob( 'test/*.cpp' ),
+		use = 'boost boost_unit_test_framework metro',
+		includes='./include',
+		unit_test=1,
+		install_path = None
+	)

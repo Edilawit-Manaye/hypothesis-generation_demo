@@ -1,0 +1,22 @@
+step 1. Convert PLINK Files to BGEN
+
+   `plink2 --bfile /mnt/hdd_1/rediet/hypothesis-generation-demo/finemapping_susie_abdu_v2/finemapping/data/1000Genomes_phase3/plink_format_b37/EUR/EUR.16.1000Gp3.20130502 --chr 16 --export bgen-1.2 --out /mnt/hdd_1/rediet/hypothesis-generation-demo/finemapping_susie_abdu_v2/finemapping/data/bgen/EUR.16.1000Gp3.20130502`
+step 2. create a BGEN index file using bgenix
+   `bgenix -g results.bgen -index`
+   Error: bgenix: command not found
+   method 1: conda install -c conda-forge bgenix
+
+step 2. 
+
+
+
+batch represents a subset of the “other genes” that we want to compute correlations with the target gene.
+process_batch:
+
+It loads expression data for the selected batch of genes and the already filtered non-zero cells.
+It builds a matrix of shape (num_cells × batch_size_genes)
+It computes Pearson correlations of the target gene with each gene in the batch.
+It returns a dictionary of correlations for that batch:
+
+
+

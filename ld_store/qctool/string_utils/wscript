@@ -1,0 +1,44 @@
+import os.path
+import glob
+#import UnitTest
+
+def configure( conf ):
+	pass
+
+def create_test( bld, name ):
+	bld.new_task_gen(
+		features = 'cxx cprogram',
+		target = name,
+		source = [  'test/' + name + '.cpp' ],
+		uselib_local = 'string_utils',
+		includes='./include',
+		unit_test=1,
+		install_path = None
+	)
+
+def create_benchmark( bld, name ):
+	bld.new_task_gen(
+		features = 'cxx cprogram',
+		target = name,
+		source = [  'benchmarks/' + name + '.cpp' ],
+		uselib_local = 'string_utils',
+		includes='./include',
+		install_path = None
+	)
+
+
+def build( bld ):
+	import Options
+	
+	#---------------------
+	# libs
+	#---------------------
+	bld.new_task_gen(
+		features = 'cxx cstaticlib',
+		target = 'string_utils',
+		source = bld.path.ant_glob 'src/*.cpp' ),
+		includes='./include',
+		uselib = 'BOOST',
+		export_includes = './include'
+	)
+	

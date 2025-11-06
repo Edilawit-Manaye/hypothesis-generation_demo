@@ -1,0 +1,11 @@
+def configure( conf ):
+	pass
+
+def build( bld ):
+	bld.stlib(
+		target = 'SNPOutputComponent',
+		source = bld.path.ant_glob( 'src/*.cpp' ),
+		includes = './include',
+		use = 'eigen genfile statfile integration appcontext qcdb metro ZLIB boost',
+		export_includes = './include'
+	)

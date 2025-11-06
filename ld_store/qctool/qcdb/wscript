@@ -1,0 +1,12 @@
+def configure( conf ):
+	pass
+
+def build( bld ):
+	bld.stlib(
+		target = 'qcdb',
+		source = bld.path.ant_glob( 'src/*.cpp' ),
+		use = 'genfile sqlite3 statfile appcontext boost genfile',
+		includes = './include',
+		export_includes = './include'
+	)
+	

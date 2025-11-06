@@ -1,0 +1,2 @@
+z;bgen;bgi;ld;n_samples
+new_gwas_chr16.z;results.bgen;results.bgen.bgi;ld_outputs/raw_gwas.ld;503

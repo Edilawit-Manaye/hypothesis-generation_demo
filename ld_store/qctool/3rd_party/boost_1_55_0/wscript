@@ -1,0 +1,67 @@
+def configure( conf ):
+	pass
+
+def build( bld ):
+	sources = (
+		[
+            'libs/iostreams/src/file_descriptor.cpp',
+            'libs/iostreams/src/gzip.cpp',
+            'libs/iostreams/src/mapped_file.cpp',
+            'libs/iostreams/src/zlib.cpp'
+		] +
+		bld.path.ant_glob( 'libs/system/src/*.cpp' ) +
+		bld.path.ant_glob( 'libs/regex/src/*.cpp' ) +
+		bld.path.ant_glob( 'libs/thread/src/*.cpp' ) +
+		bld.path.ant_glob( 'libs/thread/src/pthread/once_atomic.cpp' ) +
+		bld.path.ant_glob( 'libs/thread/src/pthread/thread.cpp' ) +
+		bld.path.ant_glob( 'libs/filesystem/src/*.cpp' ) +
+		bld.path.ant_glob( 'libs/date_time/src/posix_time/*.cpp' ) +
+		bld.path.ant_glob( 'libs/timer/src/*.cpp' ) +
+		bld.path.ant_glob( 'libs/chrono/src/*.cpp' )
+	)
+
+	bld.stlib(
+		target = 'boost',
+		source = sources,
+		includes = './',
+		export_includes = './', 
+		uselib = 'ZLIB BZIP2 RT',
+		cxxflags = [
+			'-std=c++11',
+			'-Wno-unused-local-typedefs',
+			'-Wno-c++11-long-long',
+			'-Wno-keyword-macro',
+			'-Wno-unused-const-variable',
+			'-Wno-deprecated-register',
+			'-Wno-unused-function',
+			'-Wno-redeclared-class-member'
+		]
+	)
+
+	bld.stlib(
+		target = 'boost_unit_test_framework',
+		source = [
+			'libs/test/src/compiler_log_formatter.cpp',
+			'libs/test/src/debug.cpp',
+			'libs/test/src/exception_safety.cpp',
+			'libs/test/src/execution_monitor.cpp',
+			'libs/test/src/framework.cpp',
+			'libs/test/src/interaction_based.cpp',
+			'libs/test/src/logged_expectations.cpp',
+			'libs/test/src/plain_report_formatter.cpp',
+			'libs/test/src/progress_monitor.cpp',
+			'libs/test/src/results_collector.cpp',
+			'libs/test/src/results_reporter.cpp',
+			'libs/test/src/test_main.cpp',
+			'libs/test/src/test_tools.cpp',
+			'libs/test/src/unit_test_log.cpp',
+			'libs/test/src/unit_test_main.cpp',
+			'libs/test/src/unit_test_monitor.cpp',
+			'libs/test/src/unit_test_parameters.cpp',
+			'libs/test/src/unit_test_suite.cpp',
+			'libs/test/src/xml_log_formatter.cpp',
+			'libs/test/src/xml_report_formatter.cpp'
+		],
+		includes = './',
+		export_includes = './'
+	)

@@ -1,0 +1,34 @@
+<section class="main_text" markdown="1" >
+	
+HPTEST fits the following model:
+
+$$\text{log-odds}( \text{outcome genotype} = 1 ) = X^t \cdot \beta$$
+
+where $X$ is a function of the predictor genotype and covariates,
+
+$$X = \left( \begin{matrix} 1 \\ F(\text{predictor genotype}) \\ Z \end{matrix} \right)$$
+
+and $\beta$ is a vector of regression coefficients to be maximised over. The full likelihood is
+obtained as the product of the above over all samples in the data.
+
+HPTEST currently assumes that both outcome and predictor variants are biallelic (or at least that
+they have been split into biallelic records before running through HPTEST). The outcome and
+predictor genotypes are measured with respect to those alleles, i.e. the effect is always
+interpreted as effect of the second predictor allele on the second outcome allele. If the outcome
+has ploidy larger than 1, then its alleles are regarded as forming independent draws from the
+Bernoulli distribution modelled above (i.e. it's a binomial logistic regression model with number
+of trials equal to the ploidy).
+
+The predictor genotype is currently assumed to be diploid. To handle different possible modes of
+inheritance, HPTEST uses a variety of function $F$ above as follows. If $g \in \{0,1,2\}$ denotes
+the predictor genotype then the following functions $F$ are used:
+
+Mode of inheritance  | F                                               | Specified by
+-------------------  | ----------                                      | --------------------
+additive             | $F(g) = g$                                      | ``-model add``      
+dominant             | $F(g) = 1$ if $g > 0$, or $0$ otherwise         | ``-model dom``      
+recessive            | $F(g) = 1$ if $g = 2$, or $0$ otherwise         | ``-model rec``      
+heterozygote         | $F(g) = 1$ if $g = 1$, or $0$ otherwise         | ``-model het``      
+general              | $F(g) = (g,1)$ if $g = 1$, or $(g,0)$ otherwise | ``-model add+het``  
+
+</section>
