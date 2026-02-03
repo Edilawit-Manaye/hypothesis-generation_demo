@@ -8,6 +8,15 @@ OUTPUT_DIR="/mnt/hdd_1/rediet/hypothesis-generation-demo/ldsc_ph/ldsc_multi_tiss
 
 mkdir -p $OUTPUT_DIR
 
+python /mnt/hdd_1/rediet/hypothesis-generation-demo/ldsc_ph/ldsc/ldsc_repo/munge_sumstats.py \
+    --sumstats /mnt/hdd_1/rediet/hypothesis-generation-demo/ldsc_ph/ldsc_multi_tissue/data/gwas/21001_raw.h.tsv.gz \
+    --out /mnt/hdd_1/rediet/hypothesis-generation-demo/ldsc_ph/ldsc_multi_tissue/data/gwas/21001_munged \
+    --snp rsid \
+    --a1 effect_allele \
+    --a2 other_allele \
+    --p p_value \
+    --signed-sumstats beta,0 \
+    --N 461460
 
 for ld_file in ${LDSCORE_DIR}/*.22.l2.ldscore.gz; do
     t_name=$(basename "$ld_file" .22.l2.ldscore.gz)
