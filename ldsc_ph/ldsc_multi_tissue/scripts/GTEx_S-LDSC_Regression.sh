@@ -7,3 +7,18 @@ FREQ_PATH="/mnt/hdd_1/rediet/hypothesis-generation-demo/ldsc_ph/ldsc/GRCh38/1000
 OUTPUT_DIR="/mnt/hdd_1/rediet/hypothesis-generation-demo/ldsc_ph/ldsc_multi_tissue/results/gtex/final_results"
 
 mkdir -p $OUTPUT_DIR
+
+
+for ld_file in ${LDSCORE_DIR}/*.22.l2.ldscore.gz; do
+    t_name=$(basename "$ld_file" .22.l2.ldscore.gz)
+    
+
+    python $LDSC_EXECUTABLE \
+        --h2 $SUMSTATS \
+        --ref-ld-chr "${BASELINE_PATH},${LDSCORE_DIR}/${t_name}." \
+        --w-ld-chr $WEIGHTS_PATH \
+        --overlap-annot \
+        --frqfile-chr $FREQ_PATH \
+        --out "${OUTPUT_DIR}/${t_name}_enrichment" \
+        --print-coefficients
+done
