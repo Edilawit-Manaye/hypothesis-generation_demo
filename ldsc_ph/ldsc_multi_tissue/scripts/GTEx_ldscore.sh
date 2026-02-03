@@ -9,3 +9,11 @@ OUT_DIR="/mnt/hdd_1/rediet/hypothesis-generation-demo/ldsc_ph/ldsc_multi_tissue/
 
 
 mkdir -p "$OUT_DIR"
+
+python "$LDSC_PATH" \
+    --l2 \
+    --bfile "${BFILE_DIR}/1000G.EUR.hg38.${chr}" \
+    --ld-wind-cm 1 \
+    --annot "${ANNOT_DIR}/${t_name}.${chr}.annot.gz" \
+    --thin-annot \
+    --out "${OUT_DIR}/${t_name}.${chr}"
