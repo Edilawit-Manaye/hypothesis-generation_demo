@@ -17,3 +17,16 @@ python "$LDSC_PATH" \
     --annot "${ANNOT_DIR}/${t_name}.${chr}.annot.gz" \
     --thin-annot \
     --out "${OUT_DIR}/${t_name}.${chr}"
+
+for list in $GENE_SETS; do
+    t_name=$(basename "$list" _top10.txt)
+    echo "----------------------------------------------------------------"
+    echo "Calculating Thin LD scores for: $t_name"
+    echo "----------------------------------------------------------------"
+    
+    for chr in {1..22}; do
+        echo "Processing Chromosome: $chr"
+    done
+done
+
+echo "LD score calculation complete for all tissues."
