@@ -396,3 +396,51 @@ def __(glob, os):
                 print(f"  - {tissue}")
     
     return (tissues, gene_set_files)
+@app.cell
+def __(mo):
+    mo.md("""
+## 5. Generate tissue-specific genomic annotations
+
+For each tissue and chromosome, this creates binary annotations indicating which SNPs  
+fall within genes that are highly expressed in that tissue.
+
+""")
+    return
+
+@app.cell
+def __(mo):
+    mo.md("""
+### Gene Coordinate Mapping Strategy
+
+To create annotations
+
+**Option 1**: Use a pre-built gene annotation file (GTF/GFF from Ensembl/GENCODE)
+**Option 2**: Create BED files manually for each tissue's gene list
+**Option 3**: Use biomaRt or similar tool to fetch coordinates programmatically
+
+For this notebook, we'll demonstrate **Option 3** using a simple approach.
+You may need to install additional packages or provide your own coordinate files.
+""")
+    return
+
+
+@app.cell
+def __(pd, subprocess, os, tissues, python27_path, ldsc27_path):
+
+    print("\n" + "="*60)
+    print("STEP 5: Generating tissue-specific annotations")
+    print("="*60)
+    
+    env = os.environ.copy()
+    env["PATH"] = f"{ldsc27_path}/bin:" + env.get("PATH", "")
+    
+    
+    print("\n IMPORTANT: Gene coordinate mapping required!")
+    print("This step requires gene coordinates. You need to:")
+    print("1. Obtain a gene annotation file (GTF/GFF)")
+    print("2. Map gene symbols to genomic coordinates")
+    print("3. Create BED files for each tissue")
+    print("\nSkipping annotation generation for now.")
+    print("Please implement gene coordinate mapping based on your data source.")
+    
+    return
