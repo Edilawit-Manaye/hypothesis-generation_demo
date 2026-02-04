@@ -316,3 +316,40 @@ def __(tarfile, os):
             print("  Directory doesn't exist!")
     
     return
+
+@app.cell
+def __(mo):
+    """
+    COMMIT: Add GWAS munging section header
+    """
+    mo.md("## 3. Munge GWAS summary statistics")
+    return
+
+
+@app.cell
+def __(subprocess, os, python27_path):
+    os.makedirs("data/munged", exist_ok=True)
+
+    munged_file = "data/munged/AD_bellenguez_2022_hg38_munged.sumstats.gz"
+    
+    if os.path.exists(munged_file):
+        print(" Munged GWAS file already exists, skipping munging step")
+    else:
+        print("\n" + "="*60)
+        print("STEP 3: Munging GWAS summary statistics")
+        print("="*60)
+        print("\nNote: Modify column names below to match your GWAS format!")
+        
+        subprocess.run([
+            python27_path, "tools/ldsc/munge_sumstats.py",
+            "--sumstats", "data/gwas/AD_bellenguez_2022_hg38.tsv.gz",
+            "--out", "data/munged/AD_bellenguez_2022_hg38_munged",
+            "--a1", "effect_allele",
+            "--a2", "other_allele",
+            "--p", "p_value",
+            "--snp", "variant_id",
+            "--N-col", "n_total"
+        ], check=True)
+        
+        print("\n GWAS munging complete")
+    return
