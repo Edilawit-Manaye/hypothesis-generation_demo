@@ -565,3 +565,70 @@ def __(subprocess, python27_path, cts_file):
         print("\n Tissue-specific analysis complete")
     
     return (output_prefix,)
+
+    @app.cell
+def __(mo):
+    mo.md("## 9. Rank tissues by heritability enrichment significance")
+    return
+
+
+@app.cell
+def __(pd, output_prefix):
+    print("\n" + "="*60)
+    print("STEP 9: Ranking tissues by significance")
+    print("="*60 + "\n")
+    
+    results_file = f"{output_prefix}.cell_type_results.txt"
+    
+    if not os.path.exists(results_file):
+        print(f" Results file not found: {results_file}")
+        print("Please run the heritability analysis first (Step 8)")
+    else:
+        results = pd.read_csv(results_file, sep="\t")
+        ranked = results.sort_values("Coefficient_P_value")
+        
+        output_csv = "results/GTEx_TissueSpecific_ranked.csv"
+        ranked.to_csv(output_csv, index=False)
+        
+        print("Tissues ranked by heritability enrichment p-value:\n")
+        print(ranked[["Name", "Coefficient", "Coefficient_std_error", "Coefficient_P_value"]].to_string(index=False))
+        
+        print(f"\n✓ Results saved to {output_csv}")
+        significant = ranked[ranked["Coefficient_P_value"] < 0.05]
+        if len(significant) > 0:
+            print(f"\n Found {len(significant)} tissue(s) with significant enrichment (p < 0.05):")
+            for idx, row in significant.iterrows():
+                print(f"  - {row['Name']}: p = {row['Coefficient_P_value']:.2e}")
+        
+        ranked_results = ranked
+    
+    return (ranked, ranked_results)
+
+
+@app.cell
+def __(mo):
+    mo.md("""
+## Next Steps
+
+### Interpreting Results
+- **Coefficient**: Heritability enrichment in each tissue
+- **Coefficient_P_value**: Statistical significance of enrichment
+- **Lower p-values** indicate stronger tissue-specific contribution to trait heritability
+
+
+### Gene Coordinate Mapping
+The annotation generation step (Step 5) requires gene coordinates. You can:
+- Download GENCODE annotations: https://www.gencodegenes.org/
+- Use Ensembl BioMart: https://www.ensembl.org/biomart/
+- Provide your own BED files with gene coordinates
+
+### References
+- LDSC: Finucane et al. (2015) Nature Genetics
+- Baseline LD Model: Gazal et al. (2017) Nature Genetics
+- GTEx: GTEx Consortium (2020) Science
+""")
+    return
+
+
+if __name__ == "__main__":
+    app.run()
