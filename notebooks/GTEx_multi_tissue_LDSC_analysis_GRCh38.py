@@ -444,3 +444,75 @@ def __(pd, subprocess, os, tissues, python27_path, ldsc27_path):
     print("Please implement gene coordinate mapping based on your data source.")
     
     return
+@app.cell
+def __(mo):
+    """
+    COMMIT: Add LD score calculation section header
+    """
+    mo.md("""
+## 6. Calculate LD scores for each tissue and chromosome
+
+This step computes LD scores using the tissue-specific annotations.
+This is the computational bottleneck and may take 10-30 minutes per tissue.
+""")
+    return
+
+
+@app.cell
+def __(subprocess, os, tissues, python27_path):
+    """
+    COMMIT: Calculate tissue-specific LD scores
+    - Compute LD scores for each tissue and chromosome
+    - Use 1cM LD window
+    - Apply thin-annot flag for computational efficiency
+    - Skip if LD scores already exist
+    """
+    os.makedirs("data/gtex/ldscores", exist_ok=True)
+
+    print("\n" + "="*60)
+    print("STEP 6: Calculating LD scores")
+    print("This matches your original script:")
+    print("  --l2 --ld-wind-cm 1 --thin-annot")
+    print("="*60)
+    
+    for tissue in tissues:
+        print(f"\nProcessing {tissue}...")
+        os.makedirs(f"data/gtex/ldscores/{tissue}", exist_ok=True)
+        _all_exist = all(
+            os.path.exists(f"data/gtex/ldscores/{tissue}/{tissue}.{chrom}.l2.ldscore.gz")
+            for chrom in range(1, 23)
+        )
+        
+        if _all_exist:
+            print(f" All {tissue} LD scores already exist, skipping")
+            continue
+
+        for chrom in range(1, 23):
+            ldscore_file = f"data/gtex/ldscores/{tissue}/{tissue}.{chrom}.l2.ldscore.gz"
+            
+            if os.path.exists(ldscore_file):
+                print(f"  Chromosome {chrom}  (exists)", end=" ", flush=True)
+                continue
+
+            annot_file = f"data/gtex/annot_files/{tissue}.{chrom}.annot.gz"
+            if not os.path.exists(annot_file):
+                print(f"  Chromosome {chrom}  (annotation missing)")
+                continue
+                
+            print(f"  Chromosome {chrom}...", end=" ", flush=True)
+            subprocess.run([
+                python27_path, "tools/ldsc/ldsc.py",
+                "--l2",
+                "--bfile", f"data/reference/GRCh38/plink_files/1000G.EUR.hg38.{chrom}",
+                "--ld-wind-cm", "1",
+                "--annot", annot_file,
+                "--thin-annot",
+                "--out", f"data/gtex/ldscores/{tissue}/{tissue}.{chrom}"
+            ], check=True, capture_output=True)
+            
+            print("✓")
+        
+        print(f"  {tissue} complete")
+    
+    print("\n All LD scores calculated")
+    return
