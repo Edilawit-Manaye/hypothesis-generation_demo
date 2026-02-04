@@ -353,3 +353,46 @@ def __(subprocess, os, python27_path):
         
         print("\n GWAS munging complete")
     return
+
+@app.cell
+def __(mo):
+    """
+    COMMIT: Add tissue discovery section header
+    """
+    mo.md("""
+## 4. Discover GTEx tissue gene sets
+
+This step will automatically find all `*_top10.txt` files in the tissue gene sets directory.
+You can modify the pattern to match your file naming convention.
+""")
+    return
+
+
+@app.cell
+def __(glob, os):
+    gene_set_pattern = "data/gtex/tissue_gene_sets/*_top10.txt"
+    gene_set_files = glob.glob(gene_set_pattern)
+    
+    if not gene_set_files:
+        print(f"  No gene set files found matching: {gene_set_pattern}")
+        print("\nPlease ensure your tissue gene lists are in the correct location:")
+        print("  data/gtex/tissue_gene_sets/{tissue_name}_top10.txt")
+        tissues = []
+    else:
+        tissues = []
+        for filepath in gene_set_files:
+            basename = os.path.basename(filepath)
+            tissue_name = basename.replace("_top10.txt", "")
+            tissues.append(tissue_name)
+        
+        print(f" Found {len(tissues)} tissue gene sets:")
+        for tissue in sorted(tissues):
+            filepath = f"data/gtex/tissue_gene_sets/{tissue}_top10.txt"
+            try:
+                with open(filepath) as f:
+                    gene_count = len(f.readlines())
+                print(f"  - {tissue} ({gene_count} genes)")
+            except:
+                print(f"  - {tissue}")
+    
+    return (tissues, gene_set_files)
