@@ -446,9 +446,7 @@ def __(pd, subprocess, os, tissues, python27_path, ldsc27_path):
     return
 @app.cell
 def __(mo):
-    """
-    COMMIT: Add LD score calculation section header
-    """
+
     mo.md("""
 ## 6. Calculate LD scores for each tissue and chromosome
 
@@ -460,13 +458,6 @@ This is the computational bottleneck and may take 10-30 minutes per tissue.
 
 @app.cell
 def __(subprocess, os, tissues, python27_path):
-    """
-    COMMIT: Calculate tissue-specific LD scores
-    - Compute LD scores for each tissue and chromosome
-    - Use 1cM LD window
-    - Apply thin-annot flag for computational efficiency
-    - Skip if LD scores already exist
-    """
     os.makedirs("data/gtex/ldscores", exist_ok=True)
 
     print("\n" + "="*60)
@@ -518,9 +509,6 @@ def __(subprocess, os, tissues, python27_path):
     return
 @app.cell
 def __(mo):
-    """
-    COMMIT: Add CTS reference file section header
-    """
     mo.md("## 7. Create tissue-specific CTS reference file")
     return
 
@@ -543,3 +531,37 @@ def __(os, tissues):
             print(f"  {line.strip()}")
     
     return (cts_file,)
+@app.cell
+def __(mo):
+    mo.md("""
+## 8. Run LDSC tissue-specific heritability analysis
+
+This performs partitioned heritability analysis to identify which tissues  
+contribute significantly to trait heritability.
+""")
+    return
+
+
+@app.cell
+def __(subprocess, python27_path, cts_file):
+    print("\n" + "="*60)
+    print("STEP 8: Running tissue-specific heritability analysis")
+    print("="*60 + "\n")
+    
+    output_prefix = "results/GTEx_TissueSpecific"
+    
+    if os.path.exists(f"{output_prefix}.cell_type_results.txt"):
+        print("Results file already exists, skipping analysis")
+    else:
+        subprocess.run([
+            python27_path, "tools/ldsc/ldsc.py",
+            "--h2-cts", "data/munged/AD_bellenguez_2022_hg38_munged.sumstats.gz",
+            "--ref-ld-chr", "data/reference/baselineLD_v2.2/baselineLD.",
+            "--ref-ld-chr-cts", cts_file,
+            "--w-ld-chr", "data/reference/GRCh38/weights/weights.hm3_noMHC.",
+            "--out", output_prefix
+        ], check=True)
+        
+        print("\n Tissue-specific analysis complete")
+    
+    return (output_prefix,)
