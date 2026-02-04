@@ -516,3 +516,30 @@ def __(subprocess, os, tissues, python27_path):
     
     print("\n All LD scores calculated")
     return
+@app.cell
+def __(mo):
+    """
+    COMMIT: Add CTS reference file section header
+    """
+    mo.md("## 7. Create tissue-specific CTS reference file")
+    return
+
+
+@app.cell
+def __(os, tissues):
+    os.makedirs("results", exist_ok=True)
+    
+    cts_file = "data/gtex_tissues.cts"
+    with open(cts_file, "w") as f:
+        for tissue in tissues:
+            f.write(f"{tissue}    data/gtex/ldscores/{tissue}/{tissue}.\n")
+    
+    print(f"CTS reference file created: {cts_file}")
+    print(f"Contains {len(tissues)} tissues")
+
+    print("\nContents:")
+    with open(cts_file) as f:
+        for line in f:
+            print(f"  {line.strip()}")
+    
+    return (cts_file,)
