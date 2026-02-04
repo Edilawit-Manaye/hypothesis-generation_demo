@@ -159,3 +159,70 @@ def __(Path, subprocess, os, json):
     print(f"LDSC path: {ldsc_script}")
     
     return (ldsc_script, python27_path, ldsc27_path)
+
+    @app.cell
+def __(mo):
+    mo.md("## 1. Download GTEx gene sets, reference panels, and GWAS summary statistics")
+    return
+
+
+@app.cell
+def __(os, urllib):
+
+    os.makedirs("data/gtex/tissue_gene_sets", exist_ok=True)
+    os.makedirs("data/reference", exist_ok=True)
+    os.makedirs("data/gwas", exist_ok=True)
+    os.makedirs("data/gtex/annot_files", exist_ok=True)
+    os.makedirs("data/gtex/ldscores", exist_ok=True)
+    
+    print(" Data directories created")
+    return
+
+
+@app.cell
+def __(mo):
+
+    mo.md("""
+### GTEx Tissue Gene Sets
+
+**Important**: Place your GTEx tissue-specific gene lists in `data/gtex/tissue_gene_sets/`
+
+Expected file format: `{tissue_name}_top10.txt` (or your chosen suffix)
+
+Each file should contain:
+- One gene per line (gene symbols or Ensembl IDs)
+- Top genes expressed in that tissue
+- Example tissues: Brain_Cortex, Liver, Heart, etc.
+
+You can also modify the code below to specify custom file paths.
+""")
+    return
+
+
+@app.cell
+def __(os, urllib):
+
+    if not os.path.exists("data/reference/GRCh38.tgz"):
+        print("\nDownloading GRCh38 reference with baseline LD scores (this may take several minutes)...")
+        urllib.request.urlretrieve(
+            "https://zenodo.org/records/10515792/files/GRCh38.tgz?download=1",
+            "data/reference/GRCh38.tgz"
+        )
+        print(" GRCh38 reference downloaded")
+    else:
+        print("\n GRCh38 reference already downloaded")
+    
+    if not os.path.exists("data/gwas/AD_bellenguez_2022_hg38.tsv.gz"):
+        print("Downloading example GWAS summary statistics (Alzheimer's disease)...")
+        print("You can replace this with your trait of interest.")
+        urllib.request.urlretrieve(
+            "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90027001-GCST90028000/GCST90027158/GCST90027158_buildGRCh38.tsv.gz",
+            "data/gwas/AD_bellenguez_2022_hg38.tsv.gz"
+        )
+        print(" GWAS data downloaded")
+    else:
+        print(" GWAS data already downloaded")
+    
+    print("\n All downloads complete!")
+    return
+
