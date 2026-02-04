@@ -226,3 +226,93 @@ def __(os, urllib):
     print("\n All downloads complete!")
     return
 
+
+@app.cell
+def __(mo):
+
+    mo.md("## 2. Extract reference LD panels and baseline LD scores")
+    return
+
+
+@app.cell  
+def __(tarfile, os):
+    print("Checking GRCh38.tgz contents...")
+    
+    if os.path.exists("data/reference/GRCh38.tgz"):
+        with tarfile.open("data/reference/GRCh38.tgz", "r:gz") as _tar:
+            members = _tar.getmembers()
+            print(f"Archive contains {len(members)} items")
+            print("\nTop-level structure:")
+            seen = set()
+            for m in members[:50]:  
+                parts = m.name.split('/')
+                if len(parts) > 1:
+                    top = parts[0] + "/" + parts[1]
+                    if top not in seen:
+                        print(f"  {top}")
+                        seen.add(top)
+    return
+
+
+@app.cell
+def __(tarfile, os):
+
+    print("Extracting GRCh38 reference files...")
+    
+    if not os.path.exists("data/reference/GRCh38"):
+        try:
+            print("  Verifying GRCh38.tgz integrity...")
+            with tarfile.open("data/reference/GRCh38.tgz", "r:gz") as _tar:
+                _tar.getmembers()
+            print("  File integrity verified")
+        except (EOFError, tarfile.ReadError) as e:
+            print(f"\n  Error: GRCh38.tgz is corrupted!")
+            print(f"  Please delete it and re-run: rm data/reference/GRCh38.tgz")
+            raise
+        
+        print("  Extracting (this may take a few minutes)...")
+        with tarfile.open("data/reference/GRCh38.tgz", "r:gz") as _tar:
+            _tar.extractall("data/reference")
+        print("GRCh38 reference extracted successfully")
+    else:
+        print("GRCh38 directory exists")
+    
+  
+    nested_files = [
+        ("data/reference/GRCh38/baselineLD_v2.2.tgz", "data/reference", "baselineLD_v2.2"),
+        ("data/reference/GRCh38/plink_files.tgz", "data/reference/GRCh38", "1000G.EUR.hg38.1.bed"),
+        ("data/reference/GRCh38/weights.tgz", "data/reference/GRCh38", "weights")
+    ]
+    
+    for tar_file, extract_to, check_file in nested_files:
+        check_path = os.path.join(extract_to, check_file)
+        if os.path.exists(check_path):
+            print(f"  {os.path.basename(tar_file)} already extracted")
+            continue
+            
+        if os.path.exists(tar_file):
+            print(f"  Extracting {os.path.basename(tar_file)}...")
+            with tarfile.open(tar_file, "r:gz") as _tar:
+                _tar.extractall(extract_to)
+            print(f" {os.path.basename(tar_file)} extracted")
+            
+            if not os.path.exists(check_path):
+                print(f" Warning: Expected file {check_path} not found after extraction")
+        else:
+            print(f"  Warning: {tar_file} not found")
+    
+    critical_file = "data/reference/GRCh38/1000G.EUR.hg38.1.bim"
+    if os.path.exists(critical_file):
+        print(f"\n All reference files ready! Verified: {critical_file}")
+    else:
+        print(f"\n ERROR: Critical file missing: {critical_file}")
+        print("Checking what files exist in data/reference/GRCh38/:")
+        if os.path.exists("data/reference/GRCh38"):
+            files = os.listdir("data/reference/GRCh38")
+            print(f"  Found {len(files)} files/directories")
+            for _f in sorted(files)[:10]:  
+                print(f"    - {_f}")
+        else:
+            print("  Directory doesn't exist!")
+    
+    return
