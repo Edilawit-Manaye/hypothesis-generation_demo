@@ -205,3 +205,5 @@ data/ldsc
 
 # Logs
 logs/
+data/
+*.tsv.gz

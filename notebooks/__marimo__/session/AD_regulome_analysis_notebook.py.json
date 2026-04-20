@@ -1,0 +1,267 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "20f807f36c2e9d5384df2ee8e339ac43",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "7f9fe8c80f4a76ab724c75a3c29a6059",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">This notebook reproduces the LDSC cell-type\u2013specific heritability analysis\nfrom <em>Epigenomic dissection of Alzheimer's disease pinpoints causal variants and reveals epigenome erosion</em>.</span>\n<span class=\"paragraph\">All analyses are performed using <strong>GRCh38 / hg38</strong> coordinates.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "e0572ecdfecd812d3820a0e66aa5e51d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "9432c966fa6dddc59b8f814790def18d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "GWAS stem      : 28714975-GCST004787-EFO_0001645_h\nSSF file       : data/ssf/28714975-GCST004787-EFO_0001645_h.h.tsv.gz\nSumstats file  : data/ldsc_input/28714975-GCST004787-EFO_0001645_h.sumstats.gz\nResults prefix : results/28714975-GCST004787-EFO_0001645_h_CellTypeSpecific\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "d9e7e78497e7f0c0e0b2d0a1e6694005",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"0-setup-download-and-configure-ldsc\">0. Setup: Download and configure LDSC</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "895e85e074e5c806a17362e89cd6fe84",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "beec4a91a829c13ca591cf51636849ef",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"1-discover-cell-types-and-resolve-bed-sources\">1. Discover cell types and resolve BED sources</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "8bf8a459a750b2b49a2ccaedf4412114",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "a6a876ca2aadd90e6282f55092005d1a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"2-extract-reference-ld-panels-and-baseline-ld-scores\">2. Extract reference LD panels and baseline LD scores</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "9c5a3a05db04a3b38c6bd8551c6177e7",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "11879f86b24d4bbafaef9fa397ad041c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"3-convert-gwas-to-gwas-ssf-format\">3. Convert GWAS to GWAS-SSF format</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "bdb233d84ed0754128d4c28af309b7b0",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "SSF file already exists, skipping: data/ssf/28714975-GCST004787-EFO_0001645_h.h.tsv.gz\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "464d73234979dd99a07647c3495a1644",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"4-convert-ssf-to-ldsc-format\">4. Convert SSF to LDSC format</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "1ba5b7fcdff808d43228e37765d60190",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Converting data/ssf/28714975-GCST004787-EFO_0001645_h.h.tsv.gz -> data/ldsc_input/28714975-GCST004787-EFO_0001645_h.sumstats.gz\nN DETECTION: Found N=63731 via YAML Deep Search (28714975-GCST004787-EFO_0001645.h.tsv.gz-meta.yaml).\n\n--- Verification for Mentor ---\nIs 'n' column added to raw _df? True\nUnique N values in original dataset rows: [63731]\nLDSC conversion complete using calibrated study size: 63731\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "iLit",
+      "code_hash": "120bc5faa4ffbb000aa0a53ec30f6632",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"5-generate-cell-typespecific-binary-annotations-bed-annotgz\">5. Generate cell-type\u2013specific binary annotations (BED \u2192 .annot.gz)</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "27cb70ec7aaa9986f9654ae165303fca",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "7e515344df143a807daaf5c4e8049199",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"6-calculate-ld-scores-for-each-cell-type-and-chromosome-hapmap3-snps-only\">6. Calculate LD scores for each cell type and chromosome (HapMap3 SNPs only)</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "ecdd0a8c75f23cc68627a572c5c9c61c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "c2542abbd43e968baed5c6f8c0dc0fb3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"7-create-cts-cell-typespecific-reference-file\">7. Create CTS (cell-type\u2013specific) reference file</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "2ed26edffeee39cf5d90b7d6c1d0ba8f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "121b82556256b62b52858c29b7a6b222",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"8-run-ldsc-cell-typespecific-heritability-analysis-cts\">8. Run LDSC cell-type\u2013specific heritability analysis (CTS)</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "a69bc5a61097b1a37d3453a41409df2b",
+      "outputs": [],
+      "console": []
+    }
+  ]
+}

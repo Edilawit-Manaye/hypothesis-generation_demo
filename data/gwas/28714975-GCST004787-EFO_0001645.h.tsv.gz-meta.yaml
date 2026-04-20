@@ -1,0 +1,37 @@
+
+# Study meta-data
+gwas_id: GCST004787
+gwas_catalog_api: https://www.ebi.ac.uk/gwas/rest/api/studies/GCST004787
+date_metadata_last_modified: 2025-01-14
+
+# Trait Information
+trait_description:
+  - Coronary artery disease (myocardial infarction, percutaneous transluminal coronary
+    angioplasty, coronary artery bypass grafting, angina or chromic ischemic heart
+    disease)
+ontology_mapping:
+  - EFO_0001645
+
+# Genotyping Information
+genome_assembly: GRCh38
+coordinate_system: 1-based
+genotyping_technology:
+  - Genome-wide genotyping array
+
+# Sample Information
+samples:
+  - sample_ancestry_category:
+      - European
+      - NR
+    sample_size: 63731
+    case_control_study: true
+
+# Summary Statistic information
+data_file_name: 28714975-GCST004787-EFO_0001645.h.tsv.gz
+file_type: ''
+data_file_md5sum: c7e6a0dedd4ef77642b264e2413663ea
+
+# Harmonization status
+is_harmonised: true
+is_sorted: false
+harmonisation_reference: ftp://ftp.ensembl.org/pub/release-95/fasta/homo_sapiens/dna/
