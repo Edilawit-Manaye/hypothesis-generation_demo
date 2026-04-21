@@ -54,7 +54,7 @@ def _(mo):
 
 @app.cell
 def _(GWAS_INPUT_FILE, os):
-    import re as _re
+    import re as _re   
 
     _basename = os.path.basename(GWAS_INPUT_FILE)
     _no_ext = _basename
@@ -418,104 +418,10 @@ def _(mo):
     return
 
 
-# @app.cell
-# def _(SSF_FILE, SUMSTATS_FILE, np, os, pd):
-#     import yaml
-#     os.makedirs("data/ldsc_input", exist_ok=True)
-
-#     def find_n_deep(obj):
-#         if isinstance(obj, dict):
-#             for k, v in obj.items():
-#                 low_key = str(k).lower()
-#                 if (('sample' in low_key and 'size' in low_key) or low_key == 'n') and isinstance(v, (int, float)):
-#                     return int(v)
-#             for v in obj.values():
-#                 result = find_n_deep(v)
-#                 if result: return result
-#         elif isinstance(obj, list):
-#             for item in obj:
-#                 result = find_n_deep(item)
-#                 if result: return result
-#         return None
-
-#     if os.path.exists(SUMSTATS_FILE):
-#         # Even if file exists, we run the search logic for the demonstration/mentor requirement
-#         _df_sample = pd.read_csv(SSF_FILE, sep='\t', compression='gzip', nrows=5)
-#         print(f"LDSC sumstats file already exists: {SUMSTATS_FILE}")
-#         print("Note: Skipping full conversion as file is present.")
-#     else:
-#         print(f"Converting {SSF_FILE} -> {SUMSTATS_FILE}")
-#         _df = pd.read_csv(SSF_FILE, sep='\t', compression='gzip')
-
-#         detected_n = None
-
-#         # FIND N IN THE DATASET COLUMNS FIRST (Priority 1) ---
-#         for col in _df.columns:
-#             low_col = col.lower()
-#             if low_col == 'n' or ('sample' in low_col and 'size' in low_col):
-#                 detected_n = int(_df[col].max())
-#                 print(f"N DETECTION: Found N={detected_n} inside the TSV data columns.")
-#                 break
-
-#         # FIND N IN THE METADATA ONLY IF TSV FAILED (Priority 2) ---
-#         if detected_n is None:
-#             # Extract PMID (e.g., 28714975) to find the correct YAML file
-#             file_id = os.path.basename(SSF_FILE).split('-')[0]
-#             gwas_dir = os.path.join("data", "gwas")
-#             if os.path.exists(gwas_dir):
-#                 for file in os.listdir(gwas_dir):
-#                     if file_id in file and file.endswith(".yaml"):
-#                         yaml_path = os.path.join(gwas_dir, file)
-#                         with open(yaml_path, 'r') as f:
-#                             meta = yaml.safe_load(f)
-#                             detected_n = find_n_deep(meta)
-#                             if detected_n:
-#                                 print(f"N DETECTION: Found N={detected_n} via YAML Deep Search ({file}).")
-#                                 break
-
-#         # Safety Check: Stop if N is still missing
-#         if detected_n is None:
-#             raise ValueError("UNIVERSAL ERROR: Sample size (N) not found in data or metadata.")
-
-#         # INJECT N COLUMN INTO THE ORIGINAL DATASET ---
-#         _df['n'] = detected_n
-
-#         # --- DATA CONVERSION TO LDSC FORMAT ---
-#         _ldsc = pd.DataFrame()
-
-#         # SNP mapping (RSID or Chrom:Pos)
-#         if 'rsid' in _df.columns and (_df['rsid'] != 'NA').any():
-#             _ldsc['SNP'] = _df['rsid']
-#         else:
-#             _ldsc['SNP'] = _df['chromosome'].astype(str) + ':' + _df['base_pair_location'].astype(str)
-
-#         _ldsc['A1'] = _df['effect_allele'].str.upper()
-#         _ldsc['A2'] = _df['other_allele'].str.upper()
-#         _ldsc['Z'] = _df['beta'] / _df['standard_error']
-
-#         # Pull N directly from the modified raw dataset
-#         _ldsc['N'] = _df['n']
-
-#         if 'p_value' in _df.columns:
-#             _ldsc['P'] = _df['p_value']
-
-#         # Cleaning and Saving
-#         _ldsc = _ldsc[np.isfinite(_ldsc['Z'])]
-#         _ldsc = _ldsc.drop_duplicates(subset=['SNP'])
-#         _ldsc.to_csv(SUMSTATS_FILE, sep='\t', index=False, compression='gzip')
-
-#         # VERIFICATION OF INJECTION ---
-#         print("\n--- Verification for Mentor ---")
-#         print(f"Is 'n' column added to raw _df? {'n' in _df.columns}")
-#         print(f"Unique N values in original dataset rows: {_df['n'].unique()}")
-#         print(f"LDSC conversion complete using calibrated study size: {detected_n}")
-
-#     return
 @app.cell
-def _(SSF_FILE, SUMSTATS_FILE, np, os, pd, re):
+def _(SSF_FILE, SUMSTATS_FILE, np, os, pd):
     import yaml
     os.makedirs("data/ldsc_input", exist_ok=True)
-
     def find_n_deep(obj):
         if isinstance(obj, dict):
             for k, v in obj.items():
@@ -523,37 +429,29 @@ def _(SSF_FILE, SUMSTATS_FILE, np, os, pd, re):
                 if (('sample' in low_key and 'size' in low_key) or low_key == 'n') and isinstance(v, (int, float)):
                     return int(v)
             for v in obj.values():
-                result = find_n_deep(v)
-                if result: return result
+                res = find_n_deep(v)
+                if res: return res
         elif isinstance(obj, list):
             for item in obj:
-                result = find_n_deep(item)
-                if result: return result
+                res = find_n_deep(item)
+                if res: return res
         return None
 
     if os.path.exists(SUMSTATS_FILE):
-        print(f"LDSC sumstats file already exists: {SUMSTATS_FILE}")
+        print(f"Result already exists: {SUMSTATS_FILE}")
     else:
-        print(f"Efficiently processing {SSF_FILE}...")
-        
-        # --- EFFICIENT STEP 1: PEEK AT HEADER ONLY ---
-        # nrows=0 reads only the top line (Labels). 
+        print(f"Step 1: Efficiently discovering study size for {os.path.basename(SSF_FILE)}...")
         header_peek = pd.read_csv(SSF_FILE, sep='\t', compression='gzip', nrows=0)
-        
         detected_n = None
         n_col_name = None
-
-        # Priority 1: Check labels in the dataset
         for col in header_peek.columns:
             low_col = col.lower()
-            if low_col == 'n' or ('sample' in low_col and 'size' in low_col):
+            if (low_col == 'n') or ('sample' in low_col and 'size' in low_col) or ('total' in low_col and 'n' in low_col):
                 n_col_name = col
-                print(f"EFFICIENT: Detected N-column '{col}' in header peek.")
+                print(f"EFFICIENT: Detected N-column '{col}' in headers.")
                 break
-
-        # --- EFFICIENT STEP 2: METADATA SEARCH (Only if Step 1 failed) ---
         if n_col_name is None:
-            print("N column not found in header. Searching metadata files...")
+            print("N-column missing from headers. Searching Metadata YAML...")
             file_id = os.path.basename(SSF_FILE).split('-')[0]
             gwas_dir = os.path.join("data", "gwas")
             if os.path.exists(gwas_dir):
@@ -563,28 +461,19 @@ def _(SSF_FILE, SUMSTATS_FILE, np, os, pd, re):
                         with open(yaml_path, 'r') as f:
                             detected_n = find_n_deep(yaml.safe_load(f))
                             if detected_n:
-                                print(f"EFFICIENT: Found N={detected_n} in YAML metadata ({file}).")
+                                print(f"EFFICIENT: Found N={detected_n} in YAML ({file}).")
                                 break
 
-        # Safety Check
         if detected_n is None and n_col_name is None:
             raise ValueError("UNIVERSAL ERROR: N (sample size) not found in data or metadata.")
-
-        # --- STEP 3: LOAD FULL DATASET AND INJECT ---
-        # Now we load the full data to perform the conversion
+        print("Step 2: Loading dataset and injecting metadata...")
         _df = pd.read_csv(SSF_FILE, sep='\t', compression='gzip')
-        
-        # If N was in the column, get the actual value from the data
-        if n_col_name:
+        if n_col_name: 
             detected_n = int(_df[n_col_name].max())
-
-        # Broadcasting: Inject N into every row of the original dataset
         _df['n'] = detected_n
-
-        # --- DATA CONVERSION TO LDSC FORMAT ---
+        comparison_file_path = os.path.join("data", "gwas", "UPDATED_DATASET_WITH_N.tsv.gz")
+        _df.to_csv(comparison_file_path, sep='\t', index=False, compression='gzip')
         _ldsc = pd.DataFrame()
-        
-        # Mapping variants (RSID or Location)
         if 'rsid' in _df.columns and (_df['rsid'] != 'NA').any():
             _ldsc['SNP'] = _df['rsid']
         else:
@@ -593,22 +482,16 @@ def _(SSF_FILE, SUMSTATS_FILE, np, os, pd, re):
         _ldsc['A1'] = _df['effect_allele'].str.upper()
         _ldsc['A2'] = _df['other_allele'].str.upper()
         _ldsc['Z'] = _df['beta'] / _df['standard_error']
-        
-        # Mapping the injected N value
-        _ldsc['N'] = _df['n']
+        _ldsc['N'] = _df['n'] 
 
-        if 'p_value' in _df.columns:
-            _ldsc['P'] = _df['p_value']
-
-        # Save result
         _ldsc = _ldsc[np.isfinite(_ldsc['Z'])].drop_duplicates(subset=['SNP'])
         _ldsc.to_csv(SUMSTATS_FILE, sep='\t', index=False, compression='gzip')
-        
-        # Final Verification for Mentor
-        print("\n--- FINAL VERIFICATION ---")
-        print(f"Is 'n' column successfully added to _df? {'n' in _df.columns}")
-        print(f"Dynamic N extracted and applied: {detected_n}")
-
+        original_check = pd.read_csv(SSF_FILE, sep='\t', compression='gzip', nrows=0).columns
+        updated_check = pd.read_csv(comparison_
+        file_path, sep='\t', compression='gzip', nrows=0).columns
+        print(f"1. PURE ORIGINAL HAS N? {'n' in [c.lower() for c in original_check]}")
+        print(f"2. UPDATED FILE HAS N?  {'n' in [c.lower() for c in updated_check]}")
+        print(f"3. VALUE DETECTED:      {detected_n}")
     return
 
 
