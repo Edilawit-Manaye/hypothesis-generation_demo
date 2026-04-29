@@ -856,5 +856,59 @@ def _(RESULTS_PREFIX, os, pd):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    jhj
+    """)
+    return
+
+
+@app.cell
+def _():
+    import os
+    import requests
+    from tqdm import tqdm
+
+    PROJECT_ID = "86upf" 
+    TARGET_PATH = ["LDSC_hg38", "summary_statistics", "AlkesGroup"]
+    DOWNLOAD_DIR = "data/gwas" # Changed to match your notebook folder
+
+    def get_osf_files(url):
+        items = []
+        while url:
+            response = requests.get(url).json()
+            items.extend(response['data'])
+            url = response['links'].get('next')  
+        return items
+
+    def download_file(url, filename):
+        path = os.path.join(DOWNLOAD_DIR, filename)
+        if os.path.exists(path):
+            return 
+        response = requests.get(url, stream=True)
+        with open(path, "wb") as f:
+            for data in response.iter_content(chunk_size=1024):
+                f.write(data)
+
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+    api_url = f"https://api.osf.io/v2/nodes/{PROJECT_ID}/files/osfstorage/"
+    current_items = get_osf_files(api_url)
+
+    for folder_name in TARGET_PATH:
+        for item in current_items:
+            if item['attributes']['kind'] == 'folder' and item['attributes']['name'] == folder_name:
+                api_url = item['relationships']['files']['links']['related']['href']
+                current_items = get_osf_files(api_url)
+                break
+
+    files_to_download = [i for i in current_items if i['attributes']['kind'] == 'file']
+    for file_item in files_to_download:
+        download_file(file_item['links']['download'], file_item['attributes']['name'])
+
+    print("All datasets downloaded successfully.")
+    return (os,)
+
+
 if __name__ == "__main__":
     app.run()
