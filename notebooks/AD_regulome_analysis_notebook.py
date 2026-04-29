@@ -872,7 +872,8 @@ def _():
 
     PROJECT_ID = "86upf" 
     TARGET_PATH = ["LDSC_hg38", "summary_statistics", "AlkesGroup"]
-    DOWNLOAD_DIR = "data/gwas" # Changed to match your notebook folder
+    DOWNLOAD_DIR = "data/gwas"
+    SPECIFIC_FILES = ["PASS_ADHD_Demontis2018.sumstats.gz"] 
 
     def get_osf_files(url):
         items = []
@@ -884,12 +885,10 @@ def _():
 
     def download_file(url, filename):
         path = os.path.join(DOWNLOAD_DIR, filename)
-        if os.path.exists(path):
-            return 
+        if os.path.exists(path): return 
         response = requests.get(url, stream=True)
         with open(path, "wb") as f:
-            for data in response.iter_content(chunk_size=1024):
-                f.write(data)
+            for data in response.iter_content(chunk_size=1024): f.write(data)
 
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     api_url = f"https://api.osf.io/v2/nodes/{PROJECT_ID}/files/osfstorage/"
@@ -904,9 +903,12 @@ def _():
 
     files_to_download = [i for i in current_items if i['attributes']['kind'] == 'file']
     for file_item in files_to_download:
-        download_file(file_item['links']['download'], file_item['attributes']['name'])
+        file_name = file_item['attributes']['name']
+        # Specific Logic + Fallback
+        if not SPECIFIC_FILES or file_name in SPECIFIC_FILES:
+            download_file(file_item['links']['download'], file_name)
 
-    print("All datasets downloaded successfully.")
+    print("Process complete.")
     return (os,)
 
 
