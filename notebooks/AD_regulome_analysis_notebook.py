@@ -861,43 +861,40 @@ def _():
     def run_dataset_download():
         if not SPECIFIC_FILES:
             print("ERROR: SPECIFIC_FILES list is empty.")
-            print("Bulk downloading all files is disabled to prevent storage risks.")
-            print("Please add the filenames you need to the SPECIFIC_FILES list.")
-            return 
+            return
 
-        
-        if not os.path.exists(DOWNLOAD_DIR):
-            os.makedirs(DOWNLOAD_DIR)
+        os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
         print(f"Connecting to OSF Project: {PROJECT_ID}...")
         api_url = f"https://api.osf.io/v2/nodes/{PROJECT_ID}/files/osfstorage/"
-        current_items = get_osf_files(api_url)
-    
-        
+    current_items = get_osf_files(api_url)
+
         for folder_name in TARGET_PATH:
-            found = False
             for item in current_items:
                 if item['attributes']['kind'] == 'folder' and item['attributes']['name'] == folder_name:
-                    print(f"Entering folder: {folder_name}")
                     api_url = item['relationships']['files']['links']['related']['href']
                     current_items = get_osf_files(api_url)
-                    found = True
                     break
-            if not found:
-                print(f"Error: Could not find folder '{folder_name}'")
-                return
 
-        
-        files_on_server = [i for i in current_items if i['attributes']['kind'] == 'file']
-        print(f"Found {len(files_on_server)} total files on server. Starting filtered download...")
+        url_map = {
+            item['attributes']['name']: item['links']['download']
+            for item in current_items
+            if item['attributes']['kind'] == 'file' and item['attributes']['name'] in SPECIFIC_FILES
+        }
 
-        for file_item in files_on_server:
-            file_name = file_item['attributes']['name']
-        
-            
-            if file_name in SPECIFIC_FILES:
-                download_url = file_item['links']['download']
-                download_file(download_url, file_name)
+        missing = set(SPECIFIC_FILES) - set(url_map.keys())
+        if missing:
+            print(f"WARNING: files not found on server: {missing}")
+
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = {
+                executor.submit(download_file, url, name): name
+                for name, url in url_map.items()
+            }
+            for future in as_completed(futures):
+                name, success = future.result()
+                if not success:
+                    print(f"FAILED: {name}")
 
         
 
