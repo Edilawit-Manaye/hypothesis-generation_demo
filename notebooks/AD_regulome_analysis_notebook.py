@@ -7,13 +7,12 @@ app = marimo.App(width="medium")
 
 @app.cell
 def __():
-    import os
-    import requests
-    import time
     import marimo as mo
     import urllib.request
     import os
     import re
+    import requests
+    import time
     import subprocess
     import pandas as pd
     import numpy as np
@@ -22,7 +21,7 @@ def __():
     import glob
     import multiprocessing
     from concurrent.futures import ThreadPoolExecutor, as_completed
-    return mo, urllib, os, re, subprocess, pd, np, Path, json, glob, concurrent, multiprocessing
+    return mo, urllib, os, re, requests, time, subprocess, pd, np, Path, json, glob, multiprocessing, ThreadPoolExecutor, as_completed
 
 
 @app.cell
@@ -807,21 +806,18 @@ def _(mo):
 
 
 @app.cell
-def _():
-    import os
-    import requests
-    from tqdm import tqdm
-    PROJECT_ID = "86upf" 
+def _(os, requests, time, ThreadPoolExecutor, as_completed):
+    PROJECT_ID = "86upf"
     TARGET_PATH = ["LDSC_hg38", "summary_statistics", "AlkesGroup"]
     DOWNLOAD_DIR = "data/gwas"
-    SPECIFIC_FILES = ["PASS_ADHD_Demontis2018.sumstats.gz"] 
+    SPECIFIC_FILES = ["PASS_ADHD_Demontis2018.sumstats.gz"]
 
     def get_osf_files(url):
         items = []
         while url:
             response = requests.get(url).json()
             items.extend(response['data'])
-            url = response['links'].get('next')  
+            url = response['links'].get('next')
         return items
 
     def download_file(url, filename, retries=3):
@@ -870,7 +866,7 @@ def _():
 
         print(f"Connecting to OSF Project: {PROJECT_ID}...")
         api_url = f"https://api.osf.io/v2/nodes/{PROJECT_ID}/files/osfstorage/"
-    current_items = get_osf_files(api_url)
+        current_items = get_osf_files(api_url)
 
         for folder_name in TARGET_PATH:
             for item in current_items:
@@ -899,11 +895,9 @@ def _():
                 if not success:
                     print(f"FAILED: {name}")
 
-        
-
-    
     run_dataset_download()
-    return (os,)
+    return
+
 
 
 if __name__ == "__main__":
