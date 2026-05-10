@@ -821,25 +821,42 @@ def _():
             url = response['links'].get('next')  
         return items
 
-    def download_file(url, filename):
+    def download_file(url, filename, retries=3):
         path = os.path.join(DOWNLOAD_DIR, filename)
+        tmp_path = path + ".tmp"
+
         if os.path.exists(path):
             print(f"Skipping {filename}, already exists.")
-            return 
+            return filename, True
 
-        response = requests.get(url, stream=True)
-        total_size = int(response.headers.get('content-length', 0))
-    
-        with open(path, "wb") as f, tqdm(
-            desc=filename,
-            total=total_size,
-            unit='iB',
-            unit_scale=True,
-            unit_divisor=1024,
-        ) as bar:
-            for data in response.iter_content(chunk_size=1024):
-                size = f.write(data)
-                bar.update(size)
+        for attempt in range(retries):
+            try:
+                response = requests.get(url, stream=True, timeout=60)
+                response.raise_for_status()
+                total_size = int(response.headers.get('content-length', 0))
+                downloaded = 0
+
+                with open(tmp_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=4 * 1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+                            downloaded += len(chunk)
+
+                if total_size and downloaded != total_size:
+                    raise ValueError(f"Size mismatch: got {downloaded}, expected {total_size}")
+
+                os.rename(tmp_path, path)
+                print(f"Downloaded {filename} ({downloaded / 1e6:.1f} MB)")
+                return filename, True
+
+            except Exception as e:
+                print(f"Attempt {attempt+1}/{retries} failed for {filename}: {e}")
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+                if attempt < retries - 1:
+                    time.sleep(2 ** attempt)
+
+        return filename, False
 
     def run_dataset_download():
         if not SPECIFIC_FILES:
