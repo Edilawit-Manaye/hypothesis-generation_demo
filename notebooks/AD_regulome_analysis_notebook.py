@@ -795,5 +795,99 @@ def __(RESULTS_PREFIX, pd, os):
     return (ranked,)
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    jhj
+    """)
+    return
+
+
+@app.cell
+def _():
+    import os
+    import requests
+    from tqdm import tqdm
+    PROJECT_ID = "86upf" 
+    TARGET_PATH = ["LDSC_hg38", "summary_statistics", "AlkesGroup"]
+    DOWNLOAD_DIR = "data/gwas"
+    SPECIFIC_FILES = ["PASS_ADHD_Demontis2018.sumstats.gz"] 
+
+    def get_osf_files(url):
+        items = []
+        while url:
+            response = requests.get(url).json()
+            items.extend(response['data'])
+            url = response['links'].get('next')  
+        return items
+
+    def download_file(url, filename):
+        path = os.path.join(DOWNLOAD_DIR, filename)
+        if os.path.exists(path):
+            print(f"Skipping {filename}, already exists.")
+            return 
+
+        response = requests.get(url, stream=True)
+        total_size = int(response.headers.get('content-length', 0))
+    
+        with open(path, "wb") as f, tqdm(
+            desc=filename,
+            total=total_size,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as bar:
+            for data in response.iter_content(chunk_size=1024):
+                size = f.write(data)
+                bar.update(size)
+
+    def run_dataset_download():
+        if not SPECIFIC_FILES:
+            print("ERROR: SPECIFIC_FILES list is empty.")
+            print("Bulk downloading all files is disabled to prevent storage risks.")
+            print("Please add the filenames you need to the SPECIFIC_FILES list.")
+            return 
+
+        
+        if not os.path.exists(DOWNLOAD_DIR):
+            os.makedirs(DOWNLOAD_DIR)
+
+        print(f"Connecting to OSF Project: {PROJECT_ID}...")
+        api_url = f"https://api.osf.io/v2/nodes/{PROJECT_ID}/files/osfstorage/"
+        current_items = get_osf_files(api_url)
+    
+        
+        for folder_name in TARGET_PATH:
+            found = False
+            for item in current_items:
+                if item['attributes']['kind'] == 'folder' and item['attributes']['name'] == folder_name:
+                    print(f"Entering folder: {folder_name}")
+                    api_url = item['relationships']['files']['links']['related']['href']
+                    current_items = get_osf_files(api_url)
+                    found = True
+                    break
+            if not found:
+                print(f"Error: Could not find folder '{folder_name}'")
+                return
+
+        
+        files_on_server = [i for i in current_items if i['attributes']['kind'] == 'file']
+        print(f"Found {len(files_on_server)} total files on server. Starting filtered download...")
+
+        for file_item in files_on_server:
+            file_name = file_item['attributes']['name']
+        
+            
+            if file_name in SPECIFIC_FILES:
+                download_url = file_item['links']['download']
+                download_file(download_url, file_name)
+
+        
+
+    
+    run_dataset_download()
+    return (os,)
+
+
 if __name__ == "__main__":
     app.run()
