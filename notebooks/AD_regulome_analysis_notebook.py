@@ -7,6 +7,9 @@ app = marimo.App(width="medium")
 
 @app.cell
 def __():
+    import os
+    import requests
+    import time
     import marimo as mo
     import urllib.request
     import os
@@ -17,8 +20,8 @@ def __():
     from pathlib import Path
     import json
     import glob
-    import concurrent.futures
     import multiprocessing
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     return mo, urllib, os, re, subprocess, pd, np, Path, json, glob, concurrent, multiprocessing
 
 
