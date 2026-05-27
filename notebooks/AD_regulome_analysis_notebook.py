@@ -840,6 +840,26 @@ def _(
         print("LDSC CTS analysis complete")
     return
 @app.cell
+def _(ollama, target_phenotype):
+    prompt = (
+        f"You are a senior genomic researcher. Based on established literature, "
+        f"identify the top 5 most likely causal genes for the phenotype: '{target_phenotype}'. "
+        f"Return the results as a valid JSON list of gene symbols only."
+    )
+    response = ollama.chat(
+        model='gemma4-bio',
+        messages=[
+            {'role': 'user', 'content': prompt},
+            {'role': 'assistant', 'content': '<think></think>\n'}
+        ]
+    )
+
+    llm_causal_predictions = response['message']['content']
+    print(f"Gemma4-Biology Predictions for {target_phenotype}:")
+    print(llm_causal_predictions)
+    return
+
+@app.cell
 def _(mo):
     mo.md("""
     ## 11. Results
