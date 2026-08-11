@@ -10,6 +10,8 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import urllib.request
+    from scipy.stats import binomtest
+    from statsmodels.stats.multitest import fdrcorrection
     import os
     import re
     import requests
@@ -19,42 +21,59 @@ def _():
     import numpy as np
     from pathlib import Path
     import json
+    from scipy.stats import binomtest,mannwhitneyu
+    from statsmodels.stats.multitest import fdrcorrection
     import glob
     import multiprocessing
     from concurrent.futures import ThreadPoolExecutor, as_completed
-    import ollama
     import google.generativeai as genai 
     from dotenv import load_dotenv, find_dotenv
-    _env_path = find_dotenv()
-    load_dotenv(_env_path)
-
-    _api_key = os.getenv("GEMINI_API_KEY")
-
-    # 2. Configure the engine
-    if _api_key:
-        genai.configure(api_key=_api_key)
-        print(f"SUCCESS: Gemini stable SDK initialized using: {_env_path}")
-    else:
-        print("ERROR: GEMINI_API_KEY not found. Ensure your .env is in the root folder.")
+    import zipfile
+    import ollama
+    from tqdm import tqdm
+    import ssl 
+    import torch
+    import transformers
+    import gzip    
+    import shutil  
+    from transformers import AutoTokenizer, AutoModel
+    import torch.nn.functional as F
+    import mygene
+    from pyfaidx import Fasta
+    from scipy.spatial.distance import cosine
+    from pyliftover import LiftOver
+    import pyranges as pr
     return (
+        Fasta,
+        LiftOver,
         Path,
         ThreadPoolExecutor,
         as_completed,
+        binomtest,
+        cosine,
         genai,
         glob,
+        gzip,
         json,
         mo,
         multiprocessing,
+        np,
         ollama,
         os,
         pd,
+        pr,
         re,
         requests,
+        shutil,
+        ssl,
         subprocess,
         time,
+        torch,
+        tqdm,
+        transformers,
         urllib,
+        zipfile,
     )
-
 
 @app.cell
 def _(mo):
@@ -71,13 +90,13 @@ def _(mo):
 def _(mo):
     S3_BASE          = "s3://rejuve-bio/hypothesis-generation-demo"
     GWAS_INPUT_FILE  = mo.ui.text(
-        value=f"Atrial fibrillation(30061737) ",
+        value="C:/Users/Edil/Desktop/hypothesis-generation_demo/data/gwas/afib2018_summary_stats.tbl.gz",
         label="GWAS input file path", 
         full_width=True,
     )
     W_HM3_SNPLIST   = f"{S3_BASE}/ldsc/data/w_hm3.snplist"
     HM3_NO_MHC_LIST = f"{S3_BASE}/data/reference/hm3_no_MHC.list.txt"
-    CATLAS_DIR       = f"{S3_BASE}/humanenhancer_atac_data"
+    CATLAS_DIR       = "C:/Users/Edil/Desktop/hypothesis-generation_demo/data/catlas_beds"
     CATLAS_URL       = "http://catlas.org/humanenhancer/data/cCREs/"
 
     mo.vstack([
@@ -114,7 +133,131 @@ def _(GWAS_INPUT_FILE, os, re):
     print(f"GWAS file      : {GWAS_FILE}")
     print(f"Sumstats file  : {SUMSTATS_FILE}")   
     print(f"Results prefix : {RESULTS_PREFIX}")
-    return CTS_FILE, GWAS_FILE, RESULTS_PREFIX, SUMSTATS_FILE
+    return CTS_FILE, GWAS_FILE, GWAS_STEM, RESULTS_PREFIX, SUMSTATS_FILE
+
+
+@app.cell
+def _(GWAS_FILE, os, pd):
+    def load_and_standardize(file_path):
+
+        _filename = os.path.basename(file_path)
+        rename_map = {
+
+            'hm_rsid': 'rsid', 'hm_variant_id': 'rsid', 'rs_dbSNP147': 'rsid', 'SNP': 'rsid',
+
+            'hm_chrom': 'chr', 'chromosome': 'chr', 'CHR': 'chr',
+
+            'hm_pos': 'pos', 'base_pair_location': 'pos', 'POS_GRCh37': 'pos',
+
+            'p_value': 'p', 'P-value': 'p', 'pval': 'p', 'Pvalue': 'p',
+
+            'hm_beta': 'beta', 'beta': 'beta', 'Effect_A2': 'beta',
+
+            'Freq_A2': 'maf', 'minor_AF': 'maf', 'Freq': 'maf', 'af': 'maf',
+
+        
+
+            'A1': 'ref', 'A2': 'alt', 
+
+            'hm_other_allele': 'ref', 'hm_effect_allele': 'alt',
+
+            'other_allele': 'ref', 'effect_allele': 'alt'
+
+        }
+
+
+        _chunks = []
+
+    
+
+        _reader = pd.read_csv(file_path, sep=r'\s+', engine='c', compression='infer', chunksize=250000)
+
+
+        for _chunk in _reader:
+
+        
+
+            _existing = {k: v for k, v in rename_map.items() if k in _chunk.columns}
+
+            _chunk = _chunk.rename(columns=_existing)
+
+
+
+       
+
+            _chunk = _chunk.loc[:, ~_chunk.columns.duplicated(keep='last')]
+
+
+        
+
+            _needed = ['rsid', 'chr', 'pos', 'p', 'ref', 'alt', 'beta', 'maf']
+
+            _cols_present = [c for c in _needed if c in _chunk.columns]
+
+            _chunk = _chunk[_cols_present]
+
+
+       
+
+            if 'p' in _chunk.columns:
+
+                _chunk['p'] = pd.to_numeric(_chunk['p'], errors='coerce')
+
+                _chunk = _chunk[_chunk['p'] < 5e-8].dropna(subset=['rsid', 'p']).copy()
+
+
+      
+
+            if 'maf' in _chunk.columns:
+
+                _chunk['maf'] = pd.to_numeric(_chunk['maf'], errors='coerce')
+
+                _chunk = _chunk[_chunk['maf'] >= 0.01].copy()
+
+
+            if not _chunk.empty:
+
+                _chunks.append(_chunk)
+
+
+        if not _chunks:
+
+            print(" ERROR: No SNPs passed the MAF 0.01 and P-value filters.")
+
+            return pd.DataFrame()
+
+
+    
+
+        df = pd.concat(_chunks, ignore_index=True)
+
+        df = df.sort_values('p', ascending=True).drop_duplicates(subset='rsid', keep='first')
+
+
+    
+        df['chr'] = pd.to_numeric(df['chr'], errors='coerce').fillna(0).astype(int).astype(str)
+
+        df['pos'] = pd.to_numeric(df['pos'], errors='coerce').fillna(0).astype(int)
+
+
+    
+
+        if 'ref' not in df.columns:
+
+             print(" Warning: 'ref' column not found. Checking raw columns...")
+
+             print(f"Available: {list(df.columns)}")
+
+
+        print(f" SUCCESS: {len(df)} variants identified.")
+
+        return df
+
+
+    current_gwas = load_and_standardize(GWAS_FILE)
+    return (current_gwas,)
+
+
 
 
 @app.cell
@@ -847,44 +990,6 @@ def _(
 
 
 @app.cell
-def _(GWAS_FILE):
-
-
-    strong_research_prompt = (
-
-        f"You are a Senior Scientist in Functional Genomics analyzing the GWAS metadata: '{GWAS_FILE}'.\n\n"
-
-        f"Task: Identify the top 3 cell types most likely to be significant to the "
-
-        f"functional genomic landscape of this specific phenotype within the CATLAS (222 cell-type universe).\n\n"
-
-        f"Inference Rules:\n"
-
-        f"1. Identify the primary cell lineage associated with the phenotype's mechanism.\n"
-
-        f"2. Note that heritability enrichment in this atlas often spans both life-stages (Adult and Fetal) "
-
-        f"and different anatomical sub-compartments of that primary lineage.\n\n"
-
-        f"Strict Nomenclature Rules:\n"
-
-        f"1. Use the sequence: [Life-Stage] [Anatomical Abbreviation] [Cell Type Name].\n"
-
-        f"2. Life-Stage MUST be 'Adult' or 'Fetal'.\n"
-
-        f"3. Anatomical Abbreviation MUST be used (e.g., 'A' for Atrial, 'V' for Ventricular, 'Vasc' for Vascular).\n"
-
-        f"4. Cell Type Name must be singular (e.g., 'Cardiomyocyte', 'Sm Muscle').\n\n"
-
-        f"Output: Return a valid JSON list of 3 objects with 'cell_type' and 'reason' ONLY. "
-
-        f"No preamble or chat."
-
-    )
-    return (strong_research_prompt,)
-
-
-@app.cell
 def _(ollama, strong_research_prompt):
 
     response = ollama.chat(
@@ -934,7 +1039,6 @@ def _(genai, re, strong_research_prompt, time):
         for _i, _item in enumerate(gemini_final_list, 1):
             print(f"RANK {_i}: {_item['cell_type']}")
             print(f"reason: {_item['reasoning']}\n")
-
     return
 
 
@@ -979,7 +1083,7 @@ def _(ThreadPoolExecutor, as_completed, os, requests, time):
     PROJECT_ID = "86upf"
     TARGET_PATH = ["LDSC_hg38", "summary_statistics", "AlkesGroup"]
     DOWNLOAD_DIR = "data/gwas"
-    SPECIFIC_FILES = ["PASS_ADHD_Demontis2018.sumstats.gz"]
+    SPECIFIC_FILES = ["PASS_AtrialFibrillation_Nielsen2018.sumstats.gz"]
 
     def get_osf_files(url):
         items = []
