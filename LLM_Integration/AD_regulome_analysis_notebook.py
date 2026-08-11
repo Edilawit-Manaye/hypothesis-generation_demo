@@ -631,6 +631,125 @@ def download_af_dataset(Path, requests, ssl, tqdm, os):
             print(f"  ERROR: Download failed: {_e}")
 
     return (_local_file,) 
+@app.cell
+def _(mo):
+    mo.md("""
+    ## Liftover & Allele Reorientation
+    """)
+    return
+
+
+@app.cell
+def _(CHAIN_FILE, LiftOver, pd):
+    def run_liftover(df_hg19):
+
+        lo = LiftOver(str(CHAIN_FILE))
+
+        lifted_data = []
+
+
+        for _, row in df_hg19.iterrows():
+
+       
+
+            _c = str(row['chr'])
+
+            _chrom = f"chr{_c}" if not _c.startswith('chr') else _c
+
+
+
+       
+
+            res = lo.convert_coordinate(_chrom, int(row['pos']) - 1)
+
+            if res:
+
+           
+
+                lifted_data.append({
+
+                    'rsid': row['rsid'],
+
+                    'pos_hg38': res[0][1] + 1 
+
+                })
+
+
+        if not lifted_data:
+
+            return pd.DataFrame()
+
+
+        lifted_df = pd.DataFrame(lifted_data)
+
+  
+
+        df_hg38 = df_hg19.merge(lifted_df, on='rsid', how='inner')
+
+        return df_hg38
+
+
+    def reorient_alleles(df, genome_reader):
+
+        def _fix_row(row):
+
+            _c = str(row['chr'])
+
+            _chrom = f"chr{_c}" if not _c.startswith('chr') else _c
+
+            _pos = int(row['pos_hg38']) 
+
+            try:
+
+           
+
+                _genome_seq = genome_reader[_chrom][_pos-1:_pos].seq.upper()
+
+                if _genome_seq == row['ref']:
+
+                    return row['ref'], row['alt'], row['beta']
+
+                elif _genome_seq == row['alt']:
+
+                
+
+                    return row['alt'], row['ref'], -row['beta']
+
+                else:
+
+                    return None, None, None 
+
+            except:
+
+                return None, None, None
+
+
+        results = df.apply(_fix_row, axis=1, result_type='expand')
+
+        results.columns = ['ref_fixed', 'alt_fixed', 'beta_fixed']
+
+
+
+        df_out = df.copy()
+
+        df_out['ref'] = results['ref_fixed']
+
+        df_out['alt'] = results['alt_fixed']
+
+        df_out['beta'] = results['beta_fixed']
+
+
+    
+
+        before = len(df_out)
+
+        df_out = df_out.dropna(subset=['ref', 'alt'])
+
+        print(f"  Result: {len(df_out)} oriented variants ready.")
+
+        return df_out
+
+    return (run_liftover,)
 
 @app.cell
 def _(mo):
