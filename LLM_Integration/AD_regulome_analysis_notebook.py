@@ -750,6 +750,83 @@ def _(CHAIN_FILE, LiftOver, pd):
         return df_out
 
     return (run_liftover,)
+@app.cell
+def _(mo):
+    mo.md("""
+    ## NT-2.5B Scoring Engine
+    """)
+    return
+
+
+@app.cell
+def _(device, np, torch, transformers):
+
+    _MODEL_ID = "InstaDeepAI/nucleotide-transformer-2.5b-multi-species"
+
+
+
+
+    tokenizer = transformers.AutoTokenizer.from_pretrained(_MODEL_ID, trust_remote_code=True)
+
+    model = transformers.AutoModel.from_pretrained(_MODEL_ID, trust_remote_code=True).to(device).eval()
+
+
+    def score_variants(seq_df, batch_size=2):
+
+    
+
+        _scores = []
+
+        _embeddings = []
+
+        print(f"  Action: Scoring {len(seq_df)} variants via NT-2.5B...")
+
+
+    
+
+        with torch.no_grad():
+
+            for i in range(0, len(seq_df), batch_size):
+
+                _batch = seq_df.iloc[i : i + batch_size]
+
+
+
+            
+
+                _ref_in = tokenizer(_batch['seq_ref'].tolist(), return_tensors="pt", padding=True).to(device)
+
+                _alt_in = tokenizer(_batch['seq_alt'].tolist(), return_tensors="pt", padding=True).to(device)
+
+
+          
+
+                _ref_emb = model(**_ref_in).last_hidden_state.mean(dim=1)
+
+                _alt_emb = model(**_alt_in).last_hidden_state.mean(dim=1)
+
+
+           
+
+                _batch_scores = 1 - torch.nn.functional.cosine_similarity(_ref_emb, _alt_emb)
+
+                _scores.extend(_batch_scores.cpu().numpy().tolist())
+
+
+
+           
+
+                _embeddings.append(_ref_emb.cpu().numpy())
+
+
+        
+
+    
+
+        return _scores, np.vstack(_embeddings)
+
+    return (score_variants,)
+
 
 @app.cell
 def _(mo):
