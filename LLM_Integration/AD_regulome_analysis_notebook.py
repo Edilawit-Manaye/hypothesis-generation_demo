@@ -826,6 +826,65 @@ def _(device, np, torch, transformers):
         return _scores, np.vstack(_embeddings)
 
     return (score_variants,)
+@app.cell
+def _(pd):
+    def extract_dna_windows(df_hg38, genome_reader, window_size=1000):
+
+        _half = window_size // 2
+
+        _rows = []
+
+        for _, row in df_hg38.iterrows():
+
+            _c = str(row['chr'])
+
+            _chrom = f"chr{_c}" if not _c.startswith('chr') else _c
+
+            _pos = int(row['pos_hg38'])
+
+
+
+            try:
+
+                _full_seq = genome_reader[_chrom][_pos - 1 - _half : _pos + _half].seq.upper()
+
+                if len(_full_seq) < window_size:
+
+                    continue
+
+                _seq_ref = _full_seq[:_half] + str(row['ref']) + _full_seq[_half+1:]
+
+                _seq_alt = _full_seq[:_half] + str(row['alt']) + _full_seq[_half+1:]
+
+                _rows.append({
+
+                    'rsid': row['rsid'],
+
+                    'chr': row['chr'],
+
+                    'pos_hg38': _pos,
+
+                    'seq_ref': _seq_ref,
+
+                    'seq_alt': _seq_alt
+
+                })
+
+            except Exception as e:
+
+           
+
+                continue 
+
+
+        _result_df = pd.DataFrame(_rows)
+
+        return _result_df
+
+
+
+
+    return (extract_dna_windows,)
 
 
 @app.cell
