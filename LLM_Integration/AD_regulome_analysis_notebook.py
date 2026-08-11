@@ -43,37 +43,31 @@ def _():
     from scipy.spatial.distance import cosine
     from pyliftover import LiftOver
     import pyranges as pr
+
     return (
-        Fasta,
-        LiftOver,
         Path,
         ThreadPoolExecutor,
         as_completed,
-        binomtest,
-        cosine,
         genai,
         glob,
         gzip,
         json,
         mo,
         multiprocessing,
-        np,
         ollama,
         os,
         pd,
-        pr,
         re,
         requests,
         shutil,
         ssl,
         subprocess,
         time,
-        torch,
         tqdm,
-        transformers,
         urllib,
         zipfile,
     )
+
 
 @app.cell
 def _(mo):
@@ -133,7 +127,7 @@ def _(GWAS_INPUT_FILE, os, re):
     print(f"GWAS file      : {GWAS_FILE}")
     print(f"Sumstats file  : {SUMSTATS_FILE}")   
     print(f"Results prefix : {RESULTS_PREFIX}")
-    return CTS_FILE, GWAS_FILE, GWAS_STEM, RESULTS_PREFIX, SUMSTATS_FILE
+    return CTS_FILE, GWAS_FILE, RESULTS_PREFIX, SUMSTATS_FILE
 
 
 @app.cell
@@ -155,7 +149,7 @@ def _(GWAS_FILE, os, pd):
 
             'Freq_A2': 'maf', 'minor_AF': 'maf', 'Freq': 'maf', 'af': 'maf',
 
-        
+
 
             'A1': 'ref', 'A2': 'alt', 
 
@@ -168,14 +162,14 @@ def _(GWAS_FILE, os, pd):
 
         _chunks = []
 
-    
+
 
         _reader = pd.read_csv(file_path, sep=r'\s+', engine='c', compression='infer', chunksize=250000)
 
 
         for _chunk in _reader:
 
-        
+
 
             _existing = {k: v for k, v in rename_map.items() if k in _chunk.columns}
 
@@ -183,12 +177,12 @@ def _(GWAS_FILE, os, pd):
 
 
 
-       
+
 
             _chunk = _chunk.loc[:, ~_chunk.columns.duplicated(keep='last')]
 
 
-        
+
 
             _needed = ['rsid', 'chr', 'pos', 'p', 'ref', 'alt', 'beta', 'maf']
 
@@ -197,7 +191,7 @@ def _(GWAS_FILE, os, pd):
             _chunk = _chunk[_cols_present]
 
 
-       
+
 
             if 'p' in _chunk.columns:
 
@@ -206,7 +200,7 @@ def _(GWAS_FILE, os, pd):
                 _chunk = _chunk[_chunk['p'] < 5e-8].dropna(subset=['rsid', 'p']).copy()
 
 
-      
+
 
             if 'maf' in _chunk.columns:
 
@@ -227,20 +221,20 @@ def _(GWAS_FILE, os, pd):
             return pd.DataFrame()
 
 
-    
+
 
         df = pd.concat(_chunks, ignore_index=True)
 
         df = df.sort_values('p', ascending=True).drop_duplicates(subset='rsid', keep='first')
 
 
-    
+
         df['chr'] = pd.to_numeric(df['chr'], errors='coerce').fillna(0).astype(int).astype(str)
 
         df['pos'] = pd.to_numeric(df['pos'], errors='coerce').fillna(0).astype(int)
 
 
-    
+
 
         if 'ref' not in df.columns:
 
@@ -256,9 +250,387 @@ def _(GWAS_FILE, os, pd):
 
     current_gwas = load_and_standardize(GWAS_FILE)
     return (current_gwas,)
+@app.cell
+def _(mo):
+    mo.md("""
+    ## Add Biological Infrastructure
+    """)
+    return
+
+
+@app.cell
+def _(Path, os, ssl, urllib, zipfile):
+   
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 
 
+    BIN_DIR = Path("bin")
+
+    BIN_DIR.mkdir(exist_ok=True)
+
+
+
+    PLINK_BIN = BIN_DIR / "plink.exe"
+
+    CHAIN_FILE = Path("data/reference/hg19ToHg38.over.chain.gz")
+
+
+
+
+    if not PLINK_BIN.exists():
+
+        _plink_url = "https://s3.amazonaws.com/plink1-assets/plink_win64_20231211.zip"
+
+        _zip_path = "plink_windows.zip"
+
+        urllib.request.urlretrieve(_plink_url, _zip_path)
+
+
+
+   
+
+        with zipfile.ZipFile(_zip_path, 'r') as zip_ref:
+
+            zip_ref.extractall(str(BIN_DIR))
+
+
+
+   
+
+        if os.path.exists(_zip_path):
+
+            os.remove(_zip_path)
+
+        print("  Result: PLINK.exe is ready.")
+
+
+
+
+    if not CHAIN_FILE.exists():
+
+        os.makedirs(CHAIN_FILE.parent, exist_ok=True)
+
+        print("Action: Downloading hg19ToHg38 chain file...")
+
+        urllib.request.urlretrieve(
+
+            "https://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz", 
+
+            str(CHAIN_FILE)
+
+        )
+
+        print("  Result: Chain file is ready.")
+
+
+   
+
+
+
+   
+    return CHAIN_FILE, PLINK_BIN
+
+
+@app.cell
+def download_genome_reference(Path, gzip, os, requests, shutil):
+    
+    save_dir = Path("data/reference/GRCh38")
+
+    save_dir.mkdir(parents=True, exist_ok=True) 
+
+
+
+
+
+    GENOME_FASTA_PATH = save_dir / "hg38_analysis_set.fa"
+
+    _gz_file = save_dir / "hg38.analysisSet.fa.gz"
+
+
+    if not GENOME_FASTA_PATH.exists():
+
+    
+
+        _genome_url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/analysisSet/hg38.analysisSet.fa.gz"
+
+
+
+        try:
+
+       
+
+            _response = requests.get(_genome_url, stream=True, timeout=300)
+
+            _response.raise_for_status() 
+
+
+
+            with open(_gz_file, 'wb') as f:
+
+                for _chunk in _response.iter_content(chunk_size=1024*1024): # 1MB chunks
+
+                    if _chunk:
+
+                        f.write(_chunk)
+
+
+
+            
+
+            with gzip.open(_gz_file, 'rb') as f_in:
+
+                with open(GENOME_FASTA_PATH, 'wb') as f_out:
+
+                    shutil.copyfileobj(f_in, f_out)
+
+
+
+      
+
+            if os.path.exists(_gz_file):
+
+                os.remove(_gz_file)
+
+
+
+
+        except Exception as e:
+
+            print(f"  CRITICAL ERROR: {e}")
+
+            if os.path.exists(_gz_file):
+
+                os.remove(_gz_file) 
+
+    else:
+
+        print(f"  Result: Reference file '{GENOME_FASTA_PATH.name}' already exists.")
+    return (GENOME_FASTA_PATH,)
+
+
+@app.cell
+def _(CATLAS_DIR, Path, os, requests, tqdm):
+
+
+    catlas_dir = Path(CATLAS_DIR)
+
+    print(f"Step: Synchronizing CATlas Library in: {catlas_dir.absolute()}")
+
+
+
+    catlas_dir.mkdir(parents=True, exist_ok=True)
+
+    _base_url = "http://catlas.org/humanenhancer/data/cCREs/"
+
+
+
+
+
+    CELL_TYPES = [
+
+        'Adipocyte', 'Airway_Goblet_Cell', 'Alveolar_Capillary_Endothelial_Cell', 'Alveolar_Type_1_AT1_Cell',
+
+        'Alveolar_Type_2_AT2_Cell', 'Alverolar_Type_2,Immune', 'Astrocyte_1', 'Astrocyte_2', 'Atrial_Cardiomyocyte',
+
+        'Basal_Epidermal_Skin', 'Basal_Epithelial_Mammary', 'Blood_Brain_Barrier_Endothelial_Cell', 'CNS,Enteric_Neuron',
+
+        'Cardiac_Fibroblasts', 'Cardiac_Pericyte_1', 'Cardiac_Pericyte_2', 'Cardiac_Pericyte_3', 'Cardiac_Pericyte_4',
+
+        'Chief_Cell', 'Cilliated_Cell', 'Club_Cell', 'Colon_Epithelial_Cell_1', 'Colon_Epithelial_Cell_2',
+
+        'Colon_Epithelial_Cell_3', 'Colonic_Goblet_Cell', 'Cortical_Epithelial-like', 'Ductal_Cell_Pancreatic',
+
+        'Eccrine_Epidermal_Skin', 'Endocardial_Cell', 'Endothelial_Cell_General_1', 'Endothelial_Cell_General_2',
+
+        'Endothelial_Cell_General_3', 'Endothelial_Cell_Myocardial', 'Endothelial_Exocrine_Tissues', 'Enterochromaffin_Cell',
+
+        'Esophageal_Epithelial_Cell', 'Fetal_Adrenal_Chromaffin_Cell', 'Fetal_Adrenal_Cortical_Cell', 'Fetal_Adrenal_Neuron',
+
+        'Fetal_Adrenal_Sympathoblasts', 'Fetal_Alveolar_Endothelial_Cell', 'Fetal_Astrocyte_1', 'Fetal_Astrocyte_2',
+
+        'Fetal_Astrocyte_3', 'Fetal_Astrocyte_4', 'Fetal_Astrocyte_5', 'Fetal_Atrial_Cardiomyocyte', 'Fetal_B_Lymphocyte_1_SPIB+',
+
+        'Fetal_B_Lymphocyte_2_CXCR5+', 'Fetal_B_Lymphocyte_3_NPY+', 'Fetal_Broncial_and_Alveolar_Epithelial_Cell_1',
+
+        'Fetal_Broncial_and_Alveolar_Epithelial_Cell_2', 'Fetal_Cardiac_Fibroblast', 'Fetal_Cholangiocytes',
+
+        'Fetal_Cilliated_Epithelial_Cell', 'Fetal_Endocardial_Cell', 'Fetal_Endothelial_General_1', 'Fetal_Endothelial_General_2',
+
+        'Fetal_Endothelial_General_3', 'Fetal_Enteric_Glia', 'Fetal_Enteric_Neuron', 'Fetal_Enterocyte_1', 'Fetal_Enterocyte_2',
+
+        'Fetal_Enterocyte_3', 'Fetal_Enteroendocrine', 'Fetal_Erythroblast_1', 'Fetal_Erythroblast_2', 'Fetal_Erythroblast_3',
+
+        'Fetal_Erythroblast_4', 'Fetal_Erythroblast_5', 'Fetal_Excitatory_Neuron_1', 'Fetal_Excitatory_Neuron_2',
+
+        'Fetal_Excitatory_Neuron_3', 'Fetal_Excitatory_Neuron_4', 'Fetal_Excitatory_Neuron_5', 'Fetal_Excitatory_Neuron_6',
+
+        'Fetal_Excitatory_Neuron_7', 'Fetal_Excitatory_Neuron_8', 'Fetal_Excitatory_Neuron_9', 'Fetal_Excitatory_Neuron_10',
+
+        'Fetal_Excitatory_Neuron_11', 'Fetal_Excitatory_Neuron_12', 'Fetal_Extravillous_Trophoblast', 'Fetal_Fibroblast_Gastrointestinal',
+
+        'Fetal_Fibroblast_General_1', 'Fetal_Fibroblast_General_2', 'Fetal_Fibroblast_General_3', 'Fetal_Fibroblast_General_4',
+
+        'Fetal_Fibroblast_General_5', 'Fetal_Fibroblast_Sk_Muscle_Associated_1', 'Fetal_Fibroblast_Splenic', 'Fetal_Gastric_Goblet_Cell',
+
+        'Fetal_Goblet_Cell', 'Fetal_Hematopoeitic_Stem_Cell', 'Fetal_Hepatic_Endothelial_1', 'Fetal_Hepatic_Endothelial_2',
+
+        'Fetal_Hepatic_Macrophage_1', 'Fetal_Hepatic_Macrophage_2', 'Fetal_Hepatic_Macrophage_3', 'Fetal_Hepatic_Stellate_Cell',
+
+        'Fetal_Hepatoblast', 'Fetal_Inhibitory_Neuron_1', 'Fetal_Inhibitory_Neuron_2', 'Fetal_Inhibitory_Neuron_3',
+
+        'Fetal_Inhibitory_Neuron_4', 'Fetal_Inhibitory_Neuron_5', 'Fetal_Lymphatic_Endothelial_Cell', 'Fetal_MacrophageGeneral_2',
+
+        'Fetal_Macrophage_General_1', 'Fetal_Macrophage_General_3', 'Fetal_Macrophage_General_4', 'Fetal_Megakaryocyte',
+
+        'Fetal_Mesangial_Cell_1', 'Fetal_Mesangial_Cell_2', 'Fetal_Mesothelial_Cell', 'Fetal_Metanephric_Cell',
+
+        'Fetal_Oligodendrocyte_Progenitor_2', 'Fetal_Pancreatic_Acinar_Cell_1', 'Fetal_Pancreatic_Acinar_Cell_2',
+
+        'Fetal_Pancreatic_Ductal_Cell', 'Fetal_Pancreatic_Islet_Cell', 'Fetal_Parietal,Chief_Cell', 'Fetal_Photoreceptor_Cell',
+
+        'Fetal_Placental_Endothelial_Cell', 'Fetal_Placental_Fibroblast_1', 'Fetal_Placental_Fibroblast_2', 'Fetal_Placental_Macrophage',
+
+        'Fetal_Placental_Neuron', 'Fetal_Pulmonary_Neuroendocrine_Cell', 'Fetal_Retinal_Neuron', 'Fetal_Retinal_Pigment_Cell',
+
+        'Fetal_Retinal_Progenitors_and_Muller_glia_1', 'Fetal_Retinal_Progenitors_and_Muller_glia_2', 'Fetal_Satellite_Cell_1',
+
+        'Fetal_Satellite_Cell_2', 'Fetal_Schwann_Cell', 'Fetal_Skeletal_Myocyte_1', 'Fetal_Skeletal_Myocyte_2', 'Fetal_Skeletal_Myocyte_3',
+
+        'Fetal_Syncitiotrophoblast,Cytotrophoblast,Trophoblast_Giant', 'Fetal_T_Lymphocyte_1_CD4+', 'Fetal_T_Lymphocyte_2_Cytotoxic',
+
+        'Fetal_T_Lymphocyte_3_IL2+', 'Fetal_T_Lymphocyte_4_FASLG+', 'Fetal_Thymocyte', 'Fetal_Ureteric_Bud_Cell',
+
+        'Fetal_Ventricular_Cardioyocyte', 'Fibroblast_Epithelial', 'Fibroblast_Gastrointestinal', 'Fibroblast_General',
+
+        'Fibroblast_Liver_Adrenal', 'Fibroblast_Peripheral_Nerve', 'Fibroblast_Sk_Muscle_Associated', 'Foveolar_Cell',
+
+        'GABAergic_Neuron_1', 'GABAergic_Neuron_2', 'Gastric_Neuroendocrine_Cell', 'Glutaminergic_Neuron_1', 'Glutaminergic_Neuron_2',
+
+        'Granular_Epidermal_Skin', 'Hepatocyte', 'Keratinocyte_1', 'Keratinocyte_2', 'Luteal_Cell_Ovarian', 'Lymphatic_Endothelial_Cell',
+
+        'Macrophage_General,Alveolar', 'Macrophage_General', 'Mammary_Epithelial', 'Mammary_Luminal_Epithelial_Cell_1',
+
+        'Mammary_Luminal_Epithelial_Cell_2', 'Mast_Cell', 'Melanocyte', 'Memory_B_Cell', 'Mesothelial_Cell', 'Microglia',
+
+        'Myoepithelial_Skin', 'Naive_T_cell', 'Natural_Killer_T_Cell', 'Oligodendrocyte', 'Oligodendrocyte_Precursor',
+
+        'Pancreatic_Acinar_Cell', 'Pancreatic_Alpha_Cell_1', 'Pancreatic_Alpha_Cell_2', 'Pancreatic_Beta_Cell_1',
+
+        'Pancreatic_Beta_Cell_2', 'Pancreatic_Delta,Gamma_cell', 'Paneth_Cell', 'Parietal_Cell', 'Pericyte_Esophageal_Muscularis',
+
+        'Pericyte_General_1', 'Pericyte_General_2', 'Pericyte_General_3', 'Pericyte_General_4', 'Peripheral_Nerve_Stromal',
+
+        'Plasma_Cell', 'Satellite_Cell', 'Schwann_Cell_General', 'Small_Intestinal_Enterocyte', 'Small_Intestinal_Goblet_Cell',
+
+        'Smooth_Muscle_Colon_1', 'Smooth_Muscle_Colon_2', 'Smooth_Muscle_Esophageal_Mucosal', 'Smooth_Muscle_Esophageal_Muscularis_1',
+
+        'Smooth_Muscle_Esophageal_Muscularis_2', 'Smooth_Muscle_Esophageal_Muscularis_3', 'Smooth_Muscle_GE_Junction',
+
+        'Smooth_Muscle_General', 'Smooth_Muscle_General_Gastrointestinal', 'Smooth_Muscle_Uterine', 'Smooth_Muscle_Vaginal',
+
+        'T_Lymphocyte_1_CD8+', 'T_lymphocyte_2_CD4+', 'Thyroid_Follicular_Cell', 'Transitional_Zone_Cortical_Cell', 'Tuft_Cell',
+
+        'Type_II_Skeletal_Myocyte', 'Type_I_Skeletal_Myocyte', 'Vascular_Smooth_Muscle_1', 'Vascular_Smooth_Muscle_2',
+
+        'Ventricular_Cardiomyocyte', 'Zona_Fasciculata_Cortical_Cell', 'Zona_Glomerulosa_Cortical_Cell'
+
+    ]
+
+
+
+
+    for _ct in tqdm(CELL_TYPES, desc="Verifying CATlas Library"):
+
+        _local_path = catlas_dir / f"{_ct}.bed"
+
+        if not _local_path.exists():
+
+            _url = f"{_base_url}{_ct}.bed"
+
+            try:
+
+                _res = requests.get(_url, timeout=30)
+
+                if _res.status_code == 200:
+
+                    with open(_local_path, 'wb') as _file_handle:
+
+                        _file_handle.write(_res.content)
+
+            except:
+
+                continue
+
+
+    print(f"Result: Sync complete. {len(os.listdir(catlas_dir))} cell types ready.")
+    return
+
+
+@app.cell
+def _(Path):
+    
+    _eur_dir = Path("C:/Users/Edil/Desktop/hypothesis-generation_demo/data/EUR")
+
+    _prefix = "1000G.EUR.QC"
+    _found_chroms = []
+
+    for _ch in range(1, 23):
+
+        if (_eur_dir / f"{_prefix}.{_ch}.bim").exists():
+
+            _found_chroms.append(_ch)
+
+
+
+
+
+    if len(_found_chroms) == 22:
+
+        EUR_REF_TEMPLATE = str(_eur_dir / _prefix)
+
+    else:
+
+        print(f" WARNING: Found only {len(_found_chroms)} / 22 chromosomes.")
+
+        EUR_REF_TEMPLATE = "INCOMPLETE"
+
+
+
+    return (EUR_REF_TEMPLATE,)
+
+@app.cell
+def download_af_dataset(Path, requests, ssl, tqdm, os):
+    _gwas_dir = Path("C:/Users/Edil/Desktop/hypothesis-generation_demo/data/gwas")
+    _gwas_dir.mkdir(parents=True, exist_ok=True)
+    _local_file = _gwas_dir / "afib2018_summary_stats.tbl.gz"
+    if _local_file.exists() and _local_file.stat().st_size > 700 * 1024 * 1024:
+        print(f"Result: Dataset already exists at {_local_file.name}")
+    else:
+        _url = "http://csg.sph.umich.edu/willer/public/afib2018/nielsen-thorolfsdottir-willer-NG2018-AFib-gwas-summary-statistics.tbl.gz"
+
+        _success = False
+        ssl._create_default_https_context = ssl._create_unverified_context
+        try:
+            _response = requests.get(_url, stream=True, timeout=60)
+            if _response.status_code == 200:
+                _total_size = int(_response.headers.get('content-length', 0))
+
+                with open(_local_file, 'wb') as _out_file, \
+                     tqdm(total=_total_size, unit='B', unit_scale=True, desc="Downloading") as _pbar:
+                    for _chunk in _response.iter_content(chunk_size=1024*1024):
+                        if _chunk:
+                            _out_file.write(_chunk)
+                            _pbar.update(len(_chunk))
+
+                _success = True
+                print(f"  Result: SUCCESS. Saved to {_local_file.name}")
+            else:
+                print(f"  ERROR: Server returned code {_response.status_code}")
+        except Exception as _e:
+            print(f"  ERROR: Download failed: {_e}")
+
+    return (_local_file,) 
 
 @app.cell
 def _(mo):
