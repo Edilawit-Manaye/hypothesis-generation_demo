@@ -45,28 +45,45 @@ def _():
     import pyranges as pr
 
     return (
+        Fasta,
+        LiftOver,
         Path,
         ThreadPoolExecutor,
         as_completed,
+        binomtest,
+        cosine,
         genai,
         glob,
         gzip,
         json,
         mo,
         multiprocessing,
+        np,
         ollama,
         os,
         pd,
+        pr,
         re,
         requests,
         shutil,
         ssl,
         subprocess,
         time,
+        torch,
         tqdm,
+        transformers,
         urllib,
         zipfile,
     )
+
+
+@app.cell
+def _(torch):
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+    return (device,)
 
 
 @app.cell
@@ -127,7 +144,7 @@ def _(GWAS_INPUT_FILE, os, re):
     print(f"GWAS file      : {GWAS_FILE}")
     print(f"Sumstats file  : {SUMSTATS_FILE}")   
     print(f"Results prefix : {RESULTS_PREFIX}")
-    return CTS_FILE, GWAS_FILE, RESULTS_PREFIX, SUMSTATS_FILE
+    return CTS_FILE, GWAS_FILE, GWAS_STEM, RESULTS_PREFIX, SUMSTATS_FILE
 
 
 @app.cell
@@ -250,6 +267,8 @@ def _(GWAS_FILE, os, pd):
 
     current_gwas = load_and_standardize(GWAS_FILE)
     return (current_gwas,)
+
+
 @app.cell
 def _(mo):
     mo.md("""
@@ -260,7 +279,7 @@ def _(mo):
 
 @app.cell
 def _(Path, os, ssl, urllib, zipfile):
-   
+
     ssl._create_default_https_context = ssl._create_unverified_context
 
 
@@ -288,7 +307,7 @@ def _(Path, os, ssl, urllib, zipfile):
 
 
 
-   
+
 
         with zipfile.ZipFile(_zip_path, 'r') as zip_ref:
 
@@ -296,7 +315,7 @@ def _(Path, os, ssl, urllib, zipfile):
 
 
 
-   
+
 
         if os.path.exists(_zip_path):
 
@@ -324,17 +343,17 @@ def _(Path, os, ssl, urllib, zipfile):
         print("  Result: Chain file is ready.")
 
 
-   
 
 
 
-   
+
+
     return CHAIN_FILE, PLINK_BIN
 
 
 @app.cell
 def download_genome_reference(Path, gzip, os, requests, shutil):
-    
+
     save_dir = Path("data/reference/GRCh38")
 
     save_dir.mkdir(parents=True, exist_ok=True) 
@@ -350,7 +369,7 @@ def download_genome_reference(Path, gzip, os, requests, shutil):
 
     if not GENOME_FASTA_PATH.exists():
 
-    
+
 
         _genome_url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/analysisSet/hg38.analysisSet.fa.gz"
 
@@ -358,7 +377,7 @@ def download_genome_reference(Path, gzip, os, requests, shutil):
 
         try:
 
-       
+
 
             _response = requests.get(_genome_url, stream=True, timeout=300)
 
@@ -376,7 +395,7 @@ def download_genome_reference(Path, gzip, os, requests, shutil):
 
 
 
-            
+
 
             with gzip.open(_gz_file, 'rb') as f_in:
 
@@ -386,7 +405,7 @@ def download_genome_reference(Path, gzip, os, requests, shutil):
 
 
 
-      
+
 
             if os.path.exists(_gz_file):
 
@@ -569,7 +588,7 @@ def _(CATLAS_DIR, Path, os, requests, tqdm):
 
 @app.cell
 def _(Path):
-    
+
     _eur_dir = Path("C:/Users/Edil/Desktop/hypothesis-generation_demo/data/EUR")
 
     _prefix = "1000G.EUR.QC"
@@ -596,11 +615,11 @@ def _(Path):
         EUR_REF_TEMPLATE = "INCOMPLETE"
 
 
-
     return (EUR_REF_TEMPLATE,)
 
+
 @app.cell
-def download_af_dataset(Path, requests, ssl, tqdm, os):
+def download_af_dataset(Path, requests, ssl, tqdm):
     _gwas_dir = Path("C:/Users/Edil/Desktop/hypothesis-generation_demo/data/gwas")
     _gwas_dir.mkdir(parents=True, exist_ok=True)
     _local_file = _gwas_dir / "afib2018_summary_stats.tbl.gz"
@@ -629,8 +648,9 @@ def download_af_dataset(Path, requests, ssl, tqdm, os):
                 print(f"  ERROR: Server returned code {_response.status_code}")
         except Exception as _e:
             print(f"  ERROR: Download failed: {_e}")
+    return
 
-    return (_local_file,) 
+
 @app.cell
 def _(mo):
     mo.md("""
@@ -650,7 +670,7 @@ def _(CHAIN_FILE, LiftOver, pd):
 
         for _, row in df_hg19.iterrows():
 
-       
+
 
             _c = str(row['chr'])
 
@@ -658,13 +678,13 @@ def _(CHAIN_FILE, LiftOver, pd):
 
 
 
-       
+
 
             res = lo.convert_coordinate(_chrom, int(row['pos']) - 1)
 
             if res:
 
-           
+
 
                 lifted_data.append({
 
@@ -682,7 +702,7 @@ def _(CHAIN_FILE, LiftOver, pd):
 
         lifted_df = pd.DataFrame(lifted_data)
 
-  
+
 
         df_hg38 = df_hg19.merge(lifted_df, on='rsid', how='inner')
 
@@ -701,7 +721,7 @@ def _(CHAIN_FILE, LiftOver, pd):
 
             try:
 
-           
+
 
                 _genome_seq = genome_reader[_chrom][_pos-1:_pos].seq.upper()
 
@@ -711,7 +731,7 @@ def _(CHAIN_FILE, LiftOver, pd):
 
                 elif _genome_seq == row['alt']:
 
-                
+
 
                     return row['alt'], row['ref'], -row['beta']
 
@@ -739,7 +759,7 @@ def _(CHAIN_FILE, LiftOver, pd):
         df_out['beta'] = results['beta_fixed']
 
 
-    
+
 
         before = len(df_out)
 
@@ -750,6 +770,8 @@ def _(CHAIN_FILE, LiftOver, pd):
         return df_out
 
     return (run_liftover,)
+
+
 @app.cell
 def _(mo):
     mo.md("""
@@ -763,17 +785,12 @@ def _(device, np, torch, transformers):
 
     _MODEL_ID = "InstaDeepAI/nucleotide-transformer-2.5b-multi-species"
 
-
-
-
     tokenizer = transformers.AutoTokenizer.from_pretrained(_MODEL_ID, trust_remote_code=True)
 
     model = transformers.AutoModel.from_pretrained(_MODEL_ID, trust_remote_code=True).to(device).eval()
 
 
     def score_variants(seq_df, batch_size=2):
-
-    
 
         _scores = []
 
@@ -782,50 +799,33 @@ def _(device, np, torch, transformers):
         print(f"  Action: Scoring {len(seq_df)} variants via NT-2.5B...")
 
 
-    
-
         with torch.no_grad():
 
             for i in range(0, len(seq_df), batch_size):
 
                 _batch = seq_df.iloc[i : i + batch_size]
 
-
-
-            
-
                 _ref_in = tokenizer(_batch['seq_ref'].tolist(), return_tensors="pt", padding=True).to(device)
 
                 _alt_in = tokenizer(_batch['seq_alt'].tolist(), return_tensors="pt", padding=True).to(device)
 
 
-          
-
                 _ref_emb = model(**_ref_in).last_hidden_state.mean(dim=1)
 
                 _alt_emb = model(**_alt_in).last_hidden_state.mean(dim=1)
-
-
-           
 
                 _batch_scores = 1 - torch.nn.functional.cosine_similarity(_ref_emb, _alt_emb)
 
                 _scores.extend(_batch_scores.cpu().numpy().tolist())
 
-
-
-           
-
                 _embeddings.append(_ref_emb.cpu().numpy())
 
 
-        
-
-    
-
         return _scores, np.vstack(_embeddings)
 
-    return (score_variants,)
+    return tokenizer, model, score_variants
+
+
 @app.cell
 def _(pd):
     def extract_dna_windows(df_hg38, genome_reader, window_size=1000):
@@ -872,7 +872,7 @@ def _(pd):
 
             except Exception as e:
 
-           
+
 
                 continue 
 
@@ -885,6 +885,128 @@ def _(pd):
 
 
     return (extract_dna_windows,)
+
+
+@app.cell
+def universal_discovery_engine(
+    CATLAS_DIR,
+    EUR_REF_TEMPLATE,
+    Fasta,
+    GENOME_FASTA_PATH,
+    GWAS_STEM,
+    PLINK_BIN,
+    binomtest,
+    cosine,
+    current_gwas,
+    extract_dna_windows,
+    np,
+    os,
+    pd,
+    pr,
+    run_liftover,
+    score_variants,
+    subprocess,
+    tqdm,
+):
+
+
+    _res_dir = "data/results"
+    os.makedirs(_res_dir, exist_ok=True)
+    _v16_scores_path = f"{_res_dir}/{GWAS_STEM}_FINAL_V16_AI_SCORES.csv"
+    _v16_table_path = f"{_res_dir}/{GWAS_STEM}_FINAL_V16_LEADERBOARD.csv"
+    _genome_bp = 3_100_000_000
+
+    # --- . PRUNING (hg19) ---
+    _all_pruned_hits = []
+    for _ch in range(1, 23):
+        _bim_p = f"{EUR_REF_TEMPLATE}.{_ch}.bim"
+        if not os.path.exists(_bim_p): continue
+        _bim_df = pd.read_csv(_bim_p, sep=r"\s+", header=None, usecols=[1], names=['rsid'], engine='python')
+        _bim_ids = set(_bim_df['rsid'].astype(str).str.strip())
+        _vetted_ch = current_gwas[current_gwas['rsid'].isin(_bim_ids)].copy()
+        if not _vetted_ch.empty:
+            _ch_rs = f"data/gwas/rs_v16_ch{_ch}.txt"; _vetted_ch['rsid'].to_csv(_ch_rs, index=False, header=False)
+            _out = f"data/gwas/p_v16_ch{_ch}"
+            subprocess.run([str(PLINK_BIN), "--bfile", f"{EUR_REF_TEMPLATE}.{_ch}", "--extract", _ch_rs, "--indep-pairwise", "1000", "100", "0.1", "--out", _out], capture_output=True)
+            if os.path.exists(f"{_out}.prune.in"):
+                with open(f"{_out}.prune.in", 'r') as _f_win: _win_rsids = _f_win.read().splitlines()
+                _all_pruned_hits.append(_vetted_ch[_vetted_ch['rsid'].isin(_win_rsids)])
+
+    _pruned_hg19 = pd.concat(_all_pruned_hits, ignore_index=True)
+    _snp_pr_hg19 = pr.PyRanges(pd.DataFrame({'Chromosome': _pruned_hg19['chr'].apply(lambda x: f"chr{x}" if not str(x).startswith('chr') else str(x)), 'Start': _pruned_hg19['pos'] - 1, 'End': _pruned_hg19['pos'], 'rsid': _pruned_hg19['rsid']}))
+    _all_hits_accum = []
+    _beds = [f for f in os.listdir(CATLAS_DIR) if f.endswith(".bed")]
+    for _f_name in tqdm(_beds, desc="Checking Specificity"):
+        _ct_inner = _f_name.replace(".bed", "")
+        _ct_bed = pd.read_csv(os.path.join(CATLAS_DIR, _f_name), sep='\t', header=None, usecols=[0,1,2], names=['Chromosome', 'Start', 'End'])
+        _overlaps = _snp_pr_hg19.overlap(pr.PyRanges(_ct_bed)).as_df()
+        if not _overlaps.empty:
+            for _r in _overlaps['rsid'].unique(): _all_hits_accum.append({'rsid': _r, 'Cell_Type': _ct_inner})
+
+    _breadth = pd.DataFrame(_all_hits_accum)['rsid'].value_counts()
+    _promisc_ids = _breadth[_breadth > (len(_beds) * 0.20)].index 
+    _df_v16_filtered = _pruned_hg19[~_pruned_hg19['rsid'].isin(_promisc_ids)].copy()
+
+    # --- . TRANSLATE & REORIENT ---
+    _df_h38 = run_liftover(_df_v16_filtered)
+    _reader = Fasta(str(GENOME_FASTA_PATH))
+    _comp = {'A':'T','T':'A','C':'G','G':'C','N':'N'}
+    def _fix_strand(r):
+        try:
+            _g = _reader[f"chr{r['chr']}"][int(r['pos_hg38'])-1:int(r['pos_hg38'])].seq.upper()
+            if _g == r['ref']: return r['ref'], r['alt'], r['beta']
+            if _g == r['alt']: return r['alt'], r['ref'], -r['beta']
+            if _g == _comp.get(r['ref']): return _g, _comp.get(r['alt']), r['beta']
+            return r['ref'], r['alt'], r['beta']
+        except: return r['ref'], r['alt'], r['beta']
+
+    _res_al = _df_h38.apply(_fix_strand, axis=1, result_type='expand')
+    _res_al.columns = ['ref_fix', 'alt_fix', 'beta_fix']
+    _df_ready = _df_h38.assign(ref=_res_al['ref_fix'], alt=_res_al['alt_fix'], beta=_res_al['beta_fix'])
+
+
+    _scored_list = []
+    if os.path.exists(_v16_scores_path) and os.path.getsize(_v16_scores_path) > 100:
+        _scored_list = pd.read_csv(_v16_scores_path).to_dict('records')
+
+    if len(_scored_list) < len(_df_ready):
+        _start = len(_scored_list)
+        _seq_df = extract_dna_windows(_df_ready.iloc[_start:], _reader)
+        for _i in range(len(_seq_df)):
+            _row_in = _seq_df.iloc[_i:_i+1]
+            _d_val, _e_val = score_variants(_row_in, batch_size=1)
+            _scored_list.append({'rsid': _row_in['rsid'].values[0], 'impact_score': _d_val[0], 'embedding_json': str(list(_e_val[0]))})
+            if _i % 10 == 0: pd.DataFrame(_scored_list).to_csv(_v16_scores_path, index=False)
+
+    _impact_v16 = pd.DataFrame(_scored_list).drop_duplicates('rsid')
+    _results = _df_ready.merge(_impact_v16, on='rsid', how='inner')
+    _results['vec_obj'] = _results['embedding_json'].apply(lambda x: np.array(eval(x)) if isinstance(x, str) else np.array(x))
+    _N_total = len(_results)
+    _snp_pr = pr.PyRanges(pd.DataFrame({'Chromosome': _results['chr'].apply(lambda x: f"chr{x}" if not str(x).startswith('chr') else str(x)), 'Start': _results['pos_hg38'] - 1, 'End': _results['pos_hg38'], 'rsid': _results['rsid']}))
+    _leaderboard = []
+    for _f_name in tqdm(_beds, desc="Final Scanning"):
+        _ct_bed_df = pd.read_csv(os.path.join(CATLAS_DIR, _f_name), sep='\t', header=None, usecols=[0,1,2], names=['Chromosome', 'Start', 'End'])
+        _hits_overlaps = _snp_pr.overlap(pr.PyRanges(_ct_bed_df)).as_df()
+        if not _hits_overlaps.empty:
+            _prob_bg = int((pr.PyRanges(_ct_bed_df).End - pr.PyRanges(_ct_bed_df).Start).sum()) / _genome_bp
+            _test = binomtest(len(_hits_overlaps), _N_total, _prob_bg, alternative='greater')
+            # Peak In vs Out Contrast
+            _in_m = _results['rsid'].isin(set(_hits_overlaps['rsid']))
+            _mean_in = np.mean(_results.loc[_in_m, 'vec_obj'].tolist(), axis=0)
+            _mean_out = np.mean(_results.loc[~_in_m, 'vec_obj'].tolist(), axis=0)
+            _dist = cosine(_mean_in, _mean_out) if _in_m.any() and (~_in_m).any() else 0
+            _leaderboard.append({'Cell_Type': _f_name.replace(".bed",""), 'Hits': len(_hits_overlaps), 'P_Value': round(_test.pvalue, 6), 'AI_Validation': round(_dist, 4)})
+
+    _df_final = pd.DataFrame(_leaderboard).sort_values('P_Value').reset_index(drop=True)
+    _df_final.to_csv(_v16_table_path, index=False)
+    mo.vstack([
+        mo.md(f"Discovery Leaderboard: {GWAS_STEM}"),
+        mo.ui.table(_df_final.head(15))
+    ])
+    
+    
+
+    
 
 
 @app.cell
