@@ -101,7 +101,7 @@ def _(mo):
 def _(mo):
     S3_BASE          = "s3://rejuve-bio/hypothesis-generation-demo"
     GWAS_INPUT_FILE  = mo.ui.text(
-        value="C:/Users/Edil/Desktop/hypothesis-generation_demo/data/gwas/afib2018_summary_stats.tbl.gz",
+        value="C:/Users/Edil/Desktop/hypothesis-generation_demo/data/gwas/nielsen-thorolfsdottir-willer-NG2018-AFib-gwas-summary-statistics.tbl.gz",
         label="GWAS input file path", 
         full_width=True,
     )
@@ -342,8 +342,6 @@ def _(Path, os, ssl, urllib, zipfile):
 
         print("  Result: Chain file is ready.")
 
-
-
     return CHAIN_FILE, PLINK_BIN
 
 
@@ -490,38 +488,6 @@ def _(Path):
         EUR_REF_TEMPLATE = "INCOMPLETE"
     return (EUR_REF_TEMPLATE,)
 
-
-@app.cell
-def download_af_dataset(Path, requests, ssl, tqdm):
-    _gwas_dir = Path("C:/Users/Edil/Desktop/hypothesis-generation_demo/data/gwas")
-    _gwas_dir.mkdir(parents=True, exist_ok=True)
-    _local_file = _gwas_dir / "afib2018_summary_stats.tbl.gz"
-    if _local_file.exists() and _local_file.stat().st_size > 700 * 1024 * 1024:
-        print(f"Result: Dataset already exists at {_local_file.name}")
-    else:
-        _url = "http://csg.sph.umich.edu/willer/public/afib2018/nielsen-thorolfsdottir-willer-NG2018-AFib-gwas-summary-statistics.tbl.gz"
-
-        _success = False
-        ssl._create_default_https_context = ssl._create_unverified_context
-        try:
-            _response = requests.get(_url, stream=True, timeout=60)
-            if _response.status_code == 200:
-                _total_size = int(_response.headers.get('content-length', 0))
-
-                with open(_local_file, 'wb') as _out_file, \
-                     tqdm(total=_total_size, unit='B', unit_scale=True, desc="Downloading") as _pbar:
-                    for _chunk in _response.iter_content(chunk_size=1024*1024):
-                        if _chunk:
-                            _out_file.write(_chunk)
-                            _pbar.update(len(_chunk))
-
-                _success = True
-                print(f"  Result: SUCCESS. Saved to {_local_file.name}")
-            else:
-                print(f"  ERROR: Server returned code {_response.status_code}")
-        except Exception as _e:
-            print(f"  ERROR: Download failed: {_e}")
-    return
 
 
 @app.cell
